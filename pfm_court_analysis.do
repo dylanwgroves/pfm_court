@@ -16,11 +16,11 @@ ________________________________________________________________________________
 	global c_date = c(current_date)
 
 	
-/* Run Prelim File _____________________________________________________________ // comment out if you dont need to rerun prelim cleaning	
+/* Run Prelim File _____________________________________________________________*/ // comment out if you dont need to rerun prelim cleaning	
 
 	*do "${user}/Documents/pfm_.master/00_setup/pfm_paths_master.do"
 	do "${code}/../pfm_court/pfm_court_prelim.do"
-*/
+
 /* Load Data ___________________________________________________________________*/	
 
 	use "${data_court}/pfm_court_analysis.dta", clear
@@ -126,9 +126,22 @@ ________________________________________________________________________________
 
 if `sandbox' > 0 {
 
-	table svy_date treat_court, contents(mean p_em_norm_reject) f(%7.3f)
-	stop
-	
+keep if ptixknow_em_aware == 0 
+tab p_em_norm_reject_dum treat, col 
+
+reg p_em_reject_index treat_court
+reg p_em_norm_reject_dum treat_court
+reg p_em_report treat_court
+reg p_em_report_norm treat_court
+reg p_em_record_reject treat_court 
+reg p_em_record_name treat_court
+
+reg p_em_record_shareany treat_court i.svy_enum
+tab p_em_reject_index treat, col 
+
+
+}	
+stop
 	foreach index of local index_list {
 	/*	
 		foreach var of local `index' {
