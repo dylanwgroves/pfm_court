@@ -123,13 +123,13 @@ ________________________________________________________________________________
 	#d cr
 
 /* Sandbox _____________________________________________________________________*/
-
+stop
 if `sandbox' > 0 {
 
 keep if ptixknow_em_aware == 0 
 tab p_em_norm_reject_dum treat, col 
 
-reg p_em_reject_index treat_court
+reg p_em_reject_all treat_court
 reg p_em_norm_reject_dum treat_court
 reg p_em_report treat_court
 reg p_em_report_norm treat_court
@@ -137,7 +137,8 @@ reg p_em_record_reject treat_court
 reg p_em_record_name treat_court
 
 reg p_em_record_shareany treat_court i.svy_enum
-tab p_em_reject_index treat, col 
+tab p_em_reject treat, col 
+
 
 
 }	
