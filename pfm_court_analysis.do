@@ -122,27 +122,49 @@ ________________________________________________________________________________
 							;
 	#d cr
 
+	
+foreach var of varlist p_em_record_sharepfm_name {
+	reg `var' treat_court i.svy_enum
+	reg `var' treat_ag i.svy_enum
+	reg `var' treat_any i.svy_enum
+}
+
+
 /* Sandbox _____________________________________________________________________*/
 stop
 if `sandbox' > 0 {
 
-keep if ptixknow_em_aware == 0 
-tab p_em_norm_reject_dum treat, col 
+keep if p_ptixknow_em_aware == 0 
 
-reg p_em_reject_all treat_court
-reg p_em_norm_reject_dum treat_court
-reg p_em_report treat_court
-reg p_em_report_norm treat_court
-reg p_em_record_reject treat_court 
-reg p_em_record_name treat_court
 
-reg p_em_record_shareany treat_court i.svy_enum
-tab p_em_reject treat, col 
+
+reg p_em_reject treat_court i.svy_enum
+reg p_em_reject treat_ag i.svy_enum
+reg p_em_reject treat_any i.svy_enum
+
+
+
+tab p_em_reject p_treat_court, col
+tab p_em_norm_reject_dum p_treat_court, col 
+
+reg p_em_reject_all p_treat_court_dum
+reg p_em_norm_reject_dum p_treat_court_dum
+reg p_em_report p_treat_court_dum
+reg p_em_report_norm p_treat_court_dum
+reg p_em_record_reject p_treat_court_dum
+reg p_em_record_name p_treat_court_dum
+
+reg p_em_record_shareany p_treat_court_dum i.svy_enum
+tab p_em_reject p_treat_court_dum, col 
 
 
 
 }	
 stop
+
+foreach var of varlist radio_stations_* {
+	tab `var'
+}
 	foreach index of local index_list {
 	/*	
 		foreach var of local `index' {
