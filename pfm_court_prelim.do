@@ -34,12 +34,14 @@ ________________________________________________________________________________
 	rename p_* *
 	save `temp_partner'
 	
+	
 /* Deal with Friend Survey ____________________________________________________*/
 
 	use "${data}/03_final_data/pfm_appended_noprefix.dta", clear
 	keep if f_svy_friend== 1
 	keep f_* id_village_uid
 	rename f_* *
+
 	
 /* Append Surveys _____________________________________________________*/
 
