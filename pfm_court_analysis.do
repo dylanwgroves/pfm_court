@@ -26,6 +26,7 @@ ________________________________________________________________________________
 
 	use "${data_court}/pfm_court_analysis.dta", clear
 
+reg em_reject_all treat_courtonly##c.resp_age 
 stop
 /* Define Globals and Locals ___________________________________________________*/
 	#d ;
@@ -46,7 +47,7 @@ stop
 							
 		/* Outcomes */
 		local em 			em_reject
-							em_reject_all
+								
 							em_reject_index
 							em_reject_religion 
 							em_reject_money 
