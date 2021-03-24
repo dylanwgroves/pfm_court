@@ -16,18 +16,17 @@ ________________________________________________________________________________
 	global c_date = c(current_date)
 
 	
-/* Run Prelim File _____________________________________________________________ // comment out if you dont need to rerun prelim cleaning	
+/* Run Prelim File _____________________________________________________________*/ // comment out if you dont need to rerun prelim cleaning	
 
 	*do "${code}/pfm_.master/00_setup/pfm_paths_master.do"
 	do "${code}/pfm_court/pfm_court_prelim.do"
-*/
+
 
 /* Load Data ___________________________________________________________________*/	
 
 	use "${data_court}/pfm_court_analysis.dta", clear
 
-reg em_reject_all treat_courtonly##c.resp_age 
-stop
+
 /* Define Globals and Locals ___________________________________________________*/
 	#d ;
 		
@@ -49,6 +48,7 @@ stop
 		local em 			em_reject
 								
 							em_reject_index
+							em_reject_all
 							em_reject_religion 
 							em_reject_money 
 							em_report

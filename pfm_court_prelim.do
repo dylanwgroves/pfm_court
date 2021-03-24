@@ -61,7 +61,7 @@ ________________________________________________________________________________
 	gen em_reject_index = (em_reject_religion_dum + em_reject_money_dum)/2
 	
 	drop em_reject_all
-	egen em_reject_all = rowmin(em_reject_religion_dum em_reject_money_dum)
+	egen em_reject_all = rowmax(em_reject_religion_dum em_reject_money_dum)
 	
 
 	/* Treatments */
