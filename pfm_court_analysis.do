@@ -45,17 +45,13 @@ ________________________________________________________________________________
 							;
 							
 		/* Outcomes */
-		local em 			em_reject
-								
-							em_reject_index
-							em_reject_all
-							em_reject_religion 
-							em_reject_money 
+		local em 						
+							em_reject
+							em_reject_index 
 							em_report
 							em_norm_reject
 							em_report_norm
 							em_record_shareptix
-							em_record_sharepfm
 							;
 		
 		/* Covariates */	

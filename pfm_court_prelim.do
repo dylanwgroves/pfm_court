@@ -93,7 +93,8 @@ ________________________________________________________________________________
 		lab val treat_any treat_any
 		
 	/* Drop dates */
-	drop if (startdate < td(17,12,2020))
+	drop if (startdate < td(15,12,2020))
+	
 
 /* Fill missing baseline values ________________________________________________*/
 
