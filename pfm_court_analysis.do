@@ -103,10 +103,8 @@ log using "${court_tables}/pfm_court_basic_results", replace
 foreach var of local em {
 
 	di "**** OUTCOMES IS `var' ******"
-	
-	tab `var' treat, col
-	reg `var' i.treat
-	reg `var' treat_any
+		reg `var' i.treat fm_reject
+
 	
 }
 
