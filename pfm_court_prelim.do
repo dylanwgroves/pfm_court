@@ -46,8 +46,7 @@ ________________________________________________________________________________
 /* Append Surveys _____________________________________________________*/
 
 	append using `temp_partner', force
-
-
+	
 /* Generate any necessary variables ____________________________________________*/
 
 	/* Sample */
@@ -63,7 +62,6 @@ ________________________________________________________________________________
 	drop em_reject_all
 	egen em_reject_all = rowmax(em_reject_religion_dum em_reject_money_dum)
 	
-
 	/* Treatments */
 	gen treat = 0 if treat_court == "control"
 		replace treat = 1 if treat_court == "treat_both"
@@ -79,37 +77,48 @@ ________________________________________________________________________________
 		lab var treat_courtonly "Court Treamtent (Court Only Dummy)"
 		lab def treat_courtonly 0 "Control" 1 "Treat (Court)", replace
 		lab val treat_courtonly treat_courtonly
+			
+	gen treat_courtag = 1 if treat == 1
+		replace treat_courtag = 0 if treat == 0
+		lab var treat_courtag "Court Treatment (Court/AG Dummy)"
+		lab def treat_courtag 0 "Control" 1 "Treatment (Court/AG)", replace
+		lab val treat_courtag treat_courtag
 		
-	gen treat_ag = 1 if treat == 1
-		replace treat_ag = 0 if treat == 0
-		lab var treat_ag "Court Treatment (Court/AG Dummy)"
-		lab def treat_ag 0 "Control" 1 "Treatment (Court/AG)", replace
-		lab val treat_ag treat_ag
+	gen treat_courtall = 1 if treat == 1 | treat == 2
+		replace treat_courtall = 0 if treat == 0
+		lab var treat_courtall "Court Treatment (all Treat Dummy)"
+		lab def treat_courtall 0 "Control" 1 "Treatment (Court or Court/AG)", replace
+		lab val treat_courtall treat_courtall
 		
-	gen treat_any = 1 if treat == 1 | treat == 2
-		replace treat_any = 0 if treat == 0
-		lab var treat_any "Court Treatment (Any Treat Dummy)"
-		lab def treat_any 0 "Control" 1 "Treatment (Court or Court/AG)", replace
-		lab val treat_any treat_any
-		
-	/* Drop dates */
-	drop if (startdate < td(15,12,2020))
+	drop treat_court treat_court_all treat_court_courtonly treat_court_agcourt treat_court_dum
+
+	/* Drop dates before treatment was working*/
+	*drop if (startdate < td(10,12,2020))
+	
+	/* Create village variable */
+	encode id_village_uid, gen(village)
 	
 
 /* Fill missing baseline values ________________________________________________*/
 
-		#d ;
+	#d ;
+	
+	/* Lasso Covariates */
+	global cov_lasso	resp_female 
+						resp_muslim
+						fm_reject
+						fm_reject_long	
+						resp_age
+						svy_partner
+						;
+	#d cr
+	
+		foreach var of global cov_lasso {
+			bys id_village_uid : egen vill_`var' = mean(`var')
+			replace `var' = vill_`var' if `var' == . | `var' == .d | `var' == .r
+		}
 		
-		/* Lasso Covariates */
-		global cov_lasso	resp_female 
-							resp_muslim
-							;
-		#d cr
-		
-			foreach var of global cov_lasso {
-				bys id_village_uid : egen vill_`var' = mean(`var')
-				replace `var' = vill_`var' if `var' == . | `var' == .d | `var' == .r
- 			}
+	replace svy_enum = 0 if svy_enum == .
 
 			
 /* Drop PII ____________________________________________________________________*/
