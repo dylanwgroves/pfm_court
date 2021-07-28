@@ -20,6 +20,7 @@ ________________________________________________________________________________
 	set more off
 	global c_date = c(current_date)
 	
+	
 /* Tempfiles ___________________________________________________________________*/	
 
 	tempfile temp_partner
@@ -42,7 +43,7 @@ ________________________________________________________________________________
 	keep f_* id_village_uid
 	rename f_* *
 
-	
+
 /* Append Surveys _____________________________________________________*/
 
 	append using `temp_partner', force
@@ -57,10 +58,9 @@ ________________________________________________________________________________
 	
 	/* Outcomes */
 	drop em_reject_index
-	gen em_reject_index = (em_reject_religion_dum + em_reject_money_dum)/2
+	gen em_reject_index = (em_reject + em_reject_religion_dum + em_reject_money_dum)/3
 	
 	drop em_reject_all
-	egen em_reject_all = rowmax(em_reject_religion_dum em_reject_money_dum)
 	
 	/* Treatments */
 	gen treat = 0 if treat_court == "control"

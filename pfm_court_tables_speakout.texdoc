@@ -1,0 +1,177 @@
+/* Basics ______________________________________________________________________
+
+	Project: Wellspring Tanzania, Court Influence
+	Purpose: Analysis
+	Author: dylan groves, dylanwgroves@gmail.com
+	Date: 2020/12/23
+________________________________________________________________________________*/
+
+
+/* Introduction ________________________________________________________________*/
+	
+	clear all	
+	clear matrix
+	clear mata
+	set more off
+	global c_date = c(current_date)
+	tempfile dta_main 
+	tempfile dta_vill
+
+/* Run Prelim File _____________________________________________________________	
+
+	do "${code}/pfm_.master/00_setup/pfm_paths_master.do"
+	do "${code}/pfm_ne/pfm_ne_prelim.do"
+*/
+
+/* Load Data ___________________________________________________________________*/	
+
+	import excel "${court_tables}/pfm_court_analysis_interact.xlsx", firstrow clear
+	save `dta_main', replace
+
+
+/* Sort Data ___________________________________________________________________*/
+
+	/* Individual Data */
+	sort 	coef_all se_all pval_all ///
+			coef_aginteract se_aginteract pval_aginteract ///
+			r2 N ///
+			lasso_coef_all lasso_se_all lasso_pval_all ///
+			lasso_coef_aginteract lasso_se_aginteract lasso_pval_aginteract ///
+			lasso_r2 lasso_N lasso_ctls_num ///
+			ctl_mean vill_sd min max 
+			
+	destring 	variable variablelabel ///
+				coef_all se_all pval_all ///
+				coef_aginteract se_aginteract pval_aginteract ///
+				r2 N ///
+				lasso_coef_all lasso_se_all lasso_pval_all ///
+				lasso_coef_aginteract lasso_se_aginteract lasso_pval_aginteract ///
+				lasso_r2 lasso_N lasso_ctls lasso_ctls_num ///
+				treat_mean treat_sd ctl_mean ctl_sd vill_sd min max, replace
+				
+	save `dta_main', replace
+
+
+/* Create Rank _________________________________________________________________*/
+
+	/* Individual Data */
+	# d ;
+	local sumstat_vars 	
+						em_record_shareany
+						em_record_shareptix
+						em_record_sharepfm
+						;
+	#d cr 
+						
+						
+
+	gen rank = .
+	local i = 1
+	
+	foreach var of local sumstat_vars {
+		replace rank = `i' if variable == "`var'"
+		local i = `i' + 1
+	}		   
+
+	drop if rank == .
+	gsort rank
+
+	
+/* Any Labelling Changes _______________________________________________________*/
+
+	tostring variablelabel, replace
+	replace variablelabel = "Any" if variable == "em_record_shareany"
+	replace variablelabel = "Local Gov." if variable == "em_record_shareptix"
+	replace variablelabel = "Local Radio" if variable == "em_record_sharepfm"
+
+/* Create variables ____________________________________________________________*/
+
+	count
+	global count = `r(N)'
+	
+	forval i = 1/$count {
+	
+		/* Drop pre-existing macros */
+		macro drop var`i' b`i' se`i' p`i' r2`i' n`i' ctl`i' c`i' sd`i' mn`i' mx`i'
+
+		global var`i' = variablelabel[`i']
+		
+		/* Normal */
+		global b`i' = strofreal(coef_all[`i'], "%6.3f")
+		global se`i' = strofreal(se_all[`i'], "%6.3f")
+		global p`i' = strofreal(pval_all[`i'], "%6.3f")
+		
+		global b`i'x = strofreal(coef_aginteract[`i'], "%6.3f")
+		global se`i'x = strofreal(se_aginteract[`i'], "%6.3f")
+		global p`i'x = strofreal(pval_aginteract[`i'], "%6.3f")
+		
+		global r`i' = strofreal(r2[`i'], "%6.2f")
+		global n`i' = strofreal(N[`i'], "%6.0fc")
+		global ctl`i' = "No"
+		
+		/* Lasso */
+		global b`i'c = strofreal(lasso_coef_all[`i'], "%6.3f")
+		global se`i'c = strofreal(lasso_se_all[`i'], "%6.3f")
+		global p`i'c = strofreal(lasso_pval_all[`i'], "%6.3f")
+		
+		global b`i'xc = strofreal(lasso_coef_aginteract[`i'], "%6.3f")
+		global se`i'xc = strofreal(lasso_se_aginteract[`i'], "%6.3f")
+		global p`i'xc = strofreal(lasso_pval_aginteract[`i'], "%6.3f")
+	
+		global r`i'c = strofreal(lasso_r2[`i'], "%6.2f")
+		global n`i'c = strofreal(lasso_N[`i'], "%6.0fc")
+		global ctl`i'c = strofreal(lasso_ctls_num[`i'], "%6.0fc")
+		
+		/* Summary stats */
+		global c`i' = strofreal(ctl_mean[`i'], "%6.2f")
+		global sd`i' = strofreal(vill_sd[`i'], "%6.2f")
+		global mn`i' = strofreal(min[`i'], "%6.0f")
+		global mx`i' = strofreal(max[`i'], "%6.0f")
+	
+	}
+	
+	
+	/* Assign stars and set p-value to <0.001 instead of 0.000 */
+	*do "${code}/pfm_radiodistribution/01_helpers/pfm_court_helper_stars.do"	
+
+	
+	
+/* Make Table __________________________________________________________________*/
+
+texdoc init "${court_clean_tables}/pfm_court_tables_results_speakout.tex", replace nolog
+
+texdoc write 	{
+texdoc write 	\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+texdoc write 	\begin{tabular}{l*{12}{c}}
+texdoc write 	\Xhline{2\arrayrulewidth}\addlinespace[3pt]	
+
+texdoc write    &\multicolumn{2}{c}{$var1} &\multicolumn{2}{c}{$var2} &\multicolumn{2}{c}{$var3}  \tstrut \bstrut \\ \cmidrule(r){2-3} \cmidrule(r){4-5} \cmidrule(r){6-7}
+
+texdoc write    							& (1)				& (2)				& (3)			& (4)			& (5)				& (6)								\\
+
+texdoc write 	Court Rejects EM			& $b1\sym{$s1}  	& $b1c\sym{$s1c} 	& $b2\sym{$s2} 	& $b2c\sym{$s2c} & $b3\sym{$s3} 	& $b3c\sym{$s3c}					\\
+texdoc write    Standard Error 				& $se1				& $se1c				& $se2    		& $se2c  		& $se3 				& $se3c								\\
+texdoc write 	RI \$p\$-value 				& $p1				& $p1c 				& $p2			& $p2c			& $p3  				& $p3c								\\
+texdoc write 	Hypothesis					& +					& + 				& +				& + 			& +					& +									\\
+texdoc write 	\hline \noalign{\vskip 0.1cm} 
+texdoc write 	Court*AG Counter-argument 	& $b1x\sym{$s1x}  	& $b1xc\sym{$s1c} 	& $b2x\sym{$s2x} & $b2xc\sym{$s2xc} & $b3x\sym{$s3x} & $b3xc\sym{$s3xc}					\\
+texdoc write    Standard Error 				& $se1x				& $se1xc			& $se2x    		& $se2xc  		& $se3x 			& $se3xc							\\
+texdoc write 	RI \$p\$-value 				& $p1x				& $p1xc 			& $p2x			& $p2xc			& $p3x  			& $p3xc								\\
+texdoc write 	Hypothesis					& -					& - 				& -				& - 			& -					& -									\\
+texdoc write 	\hline \noalign{\vskip 0.1cm} 
+texdoc write 	Control Mean      			& $c1				& $c1				& $c2			& $c2			& $c3  				& $c3								\\
+texdoc write 	Control SD 					& $sd1				& $sd1				& $sd2			& $sd2			& $sd3 				& $sd3								\\
+texdoc write	DV Range					& [$mn1-$mx1]		& [$mn1-$mx1]		& [$mn2-$mx2]	& [$mn2-$mx2]	& [$mn3-$mx3] 		& [$mn3-$mx3]						\\	
+texdoc write 	Controls 					& $ctl1 			& $ctl1c 			&  $ctl2   		& $ctl2c  		& $ctl3				& $ctl3c 							\\
+texdoc write 	Adj-\$ R^2\$				& $r1 				& $r1c 				& $r2   		& $r2c 			& $r3				& $r3c								\\
+texdoc write 	Observations      			& $n1 				& $n1c 				& $n2   		& $n2c 			& $n3				& $n3c								\\
+texdoc write 	\Xhline{2\arrayrulewidth}
+texdoc write 	\end{tabular}
+texdoc write 	}
+
+texdoc close
+
+
+
+
+

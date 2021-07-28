@@ -41,11 +41,14 @@ ________________________________________________________________________________
 								
 			/* Outcomes */
 			global em 						
+								em_reject_index
 								em_reject
-								em_reject_index 
+								em_reject_money_dum 
+								em_reject_religion_dum
 								em_report
-								em_norm_reject
+								em_norm_reject_dum
 								em_report_norm
+								em_record_shareany
 								em_record_shareptix
 								em_record_sharepfm
 								;
@@ -98,13 +101,13 @@ ________________________________________________________________________________
 		
 		qui putexcel O1 = ("treat_mean_all")
 		qui putexcel P1 = ("treat_sd_all")
+		qui putexcel Q1 = ("treat_N_all")
 		
 		qui putexcel Q1 = ("coef_courtonly")
 		qui putexcel R1 = ("se_courtonly")
 		qui putexcel S1 = ("pval_courtonly")
 		qui putexcel T1 = ("ripval_courtonly")
 		qui putexcel U1 = ("r2_courtonly")
-		qui putexcel V1 = ("N_courtonly")
 		
 		qui putexcel W1 = ("lasso_coef_courtonly")
 		qui putexcel X1 = ("lasso_se_courtonly")
@@ -137,12 +140,15 @@ ________________________________________________________________________________
 		qui putexcel AT1 = ("lasso_ctls_num")
 		
 		qui putexcel AU1 = ("ctl_mean")
-		qui putexcel AV1 = ("ctl_sd")
-		qui putexcel AW1 = ("vill_sd")
-		qui putexcel AX1 = ("min")
-		qui putexcel AY1 = ("max")
-		qui putexcel AZ1 = ("test")
-	
+		qui putexcel AV1 = ("ctl_sd")	
+		qui putexcel AW1 = ("ctl_N")
+		qui putexcel AX1 = ("vill_sd")
+		qui putexcel AY1 = ("min")
+		qui putexcel AZ1 = ("max")
+		qui putexcel BA1 = ("test")
+		qui putexcel BB1 = ("N_courtonly_sample")
+		qui putexcel BC1 = ("N_courtag_sample")
+		qui putexcel BD1 = ("N_courtall_sample")
 
 local row = 2	
 foreach dv of global em {		
@@ -160,6 +166,7 @@ foreach dv of global em {
 		qui sum `dv' if treat_courtall == 0
 			global ctl_mean `r(mean)'
 			global ctl_sd `r(sd)'
+			global ctl_N `r(N)'
 			
 		/* min and max */
 		qui sum `dv' 
@@ -179,6 +186,7 @@ foreach dv of global em {
 		qui sum `dv' if treat_`treat' == 1
 			global treat_mean_`treat' `r(mean)'
 			global treat_sd_`treat' `r(sd)'
+			global N_`treat'_sample `r(N)'
 		
 			qui reg `dv' treat_`treat' ${cov_always}					     			// This is the core regression
 				matrix table = r(table)
@@ -305,11 +313,15 @@ foreach dv of global em {
 	
 	qui putexcel AU`row' = ("${ctl_mean}")
 	qui putexcel AV`row' = ("${ctl_sd}")
-	qui putexcel AW`row' = ("${vill_sd}")
-	qui putexcel AX`row' = ("${min}")
-	qui putexcel AY`row' = ("${max}")
-	qui putexcel AZ`row' = ("${test}")
-	
+	qui putexcel AW`row' = ("${ctl_N}")
+	qui putexcel AX`row' = ("${vill_sd}")
+	qui putexcel AY`row' = ("${min}")
+	qui putexcel AZ`row' = ("${max}")
+	qui putexcel BA`row' = ("${test}")
+	qui putexcel BB`row' = ("${N_courtonly_sample}")
+	qui putexcel BC`row' = ("${N_courtag_sample}")
+	qui putexcel BD`row' = ("${N_courtall_sample}")
+
 	/* Update locals ___________________________________________________________*/
 	
 	local row = `row' + 1

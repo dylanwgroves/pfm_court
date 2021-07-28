@@ -1,0 +1,196 @@
+/* Basics ______________________________________________________________________
+
+Project: Wellspring Tanzania, Natural Experiment
+Purpose: Analysis
+Author: dylan groves, dylanwgroves@gmail.com
+Date: 2020/12/23
+________________________________________________________________________________*/
+
+
+/* Introduction ________________________________________________________________*/
+	
+	clear all	
+	clear matrix
+	clear mata
+	set more off
+	global c_date = c(current_date)
+	tempfile dta_main 
+	tempfile dta_vill
+
+/* Run Prelim File _____________________________________________________________	
+
+	do "${code}/pfm_.master/00_setup/pfm_paths_master.do"
+	do "${code}/pfm_ne/pfm_ne_prelim.do"
+*/
+
+/* Load Data ___________________________________________________________________*/	
+
+	import excel "${court_tables}/pfm_court_balance.xlsx", firstrow clear
+	save `dta_main', replace
+
+
+/* Sort Data ___________________________________________________________________*/
+
+	/* Individual Data */
+	sort 		ctl_mean treat_mean_courtonly treat_mean_courtag N jointpvalue
+			
+	destring 	ctl_mean treat_mean_courtonly treat_mean_courtag N jointpvalue, replace
+				
+	save `dta_main', replace
+
+
+/* Create Rank _________________________________________________________________*/
+
+	/* Individual Data <-- NOT SORTING BY HAND, SORTING BY PVALUE 
+	# d ;
+	local balance_vars 	
+						fm_reject 
+						fm_reject_long
+						resp_female
+						resp_muslim
+						resp_age 
+						svy_partner 
+						resp_married
+						resp_rltn_age
+						resp_yrsinvill
+						resp_villknow
+						ge_kids_idealnum
+						ge_kids_idealage
+						resp_religiousschool 
+						values_tzovertribe_dum
+						prej_kidmarry_index
+						prej_yesnbr_index
+						ptixpref_rank_ag ptixpref_rank_crime 
+						ptixpref_rank_efm ptixpref_rank_edu 
+						ptixpref_rank_justice ptixpref_rank_electric 
+						ptixpref_rank_sanit ptixpref_rank_roads 
+						ptixpref_rank_health
+						;
+	#d cr 
+						
+						
+
+	gen rank = .
+	local i = 1
+	
+	foreach var of local sumstat_vars {
+		replace rank = `i' if variable == "`var'"
+		local i = `i' + 1
+	}	
+
+	drop if rank == .
+	*/
+	gsort jointpvalue
+
+
+/* Any Labelling Changes _______________________________________________________*/
+
+	tostring variablelabel, replace
+	replace variablelabel = "Know others in village" if variable == "resp_villknow"
+	replace variablelabel = "Partner survey" if variable == "svy_partner"
+	replace variablelabel = "Neighbor prejudice index" if variable == "prej_yesnbr_index"
+	replace variablelabel = "Female" if variable == "resp_female"
+	replace variablelabel = "Religious school" if variable == "resp_religiousschool"
+	replace variablelabel = "TZ over tribe" if variable == "values_tzovertribe_dum"
+	replace variablelabel = "Muslim" if variable == "resp_muslim"
+	replace variablelabel = "Marriage prejudice index" if variable == "prej_kidmarry_index"
+	replace variablelabel = "Reject forced marriage" if variable == "fm_reject"
+	replace variablelabel = "Reject forced marriage (long)" if variable == "fm_reject_long"
+	replace variablelabel = "Married" if variable == "resp_married"
+	replace variablelabel = "Ideal age for kids" if variable == "ge_kids_idealage"
+	replace variablelabel = "Time in village" if variable == "resp_yrsinvill"
+	replace variablelabel = "Pref. rank crime" if variable == "ptixpref_rank_crime"
+	replace variablelabel = "Pref. rank justice" if variable == "ptixpref_rank_justice"
+	replace variablelabel = "Respondent age" if variable == "resp_age"
+	replace variablelabel = "Partner age" if variable == "resp_rltn_age"
+	replace variablelabel = "Pref. rank EFM" if variable == "ptixpref_rank_efm"
+	replace variablelabel = "Pref. rank electricity" if variable == "ptixpref_rank_electric"
+	replace variablelabel = "Ideal number of kids" if variable == "ge_kids_idealnum"
+	replace variablelabel = "Pref. rank health" if variable == "ptixpref_rank_health"
+	replace variablelabel = "Pref. rank roads" if variable == "ptixpref_rank_roads"
+	replace variablelabel = "Pref. rank sanitation" if variable == "ptixpref_rank_sanit"
+	replace variablelabel = "Pref. rank education" if variable == "ptixpref_rank_edu"
+	replace variablelabel = "Pref. rank agriculture" if variable == "ptixpref_rank_ag"	
+	replace variablelabel = "Conformity is good" if variable == "values_conformity"	
+	replace variablelabel = "Feeling thermo. - religious other" if variable == "prej_thermo_out_rel"	
+	replace variablelabel = "Feeling thermo. - tribal other" if variable == "prej_thermo_out_eth"	
+	
+
+/* Create variables ____________________________________________________________*/
+
+	count
+	global count = `r(N)'
+	
+	forval i = 1/$count {
+	
+		/* Drop pre-existing macros */
+		macro drop var`i' b`i' se`i' p`i' r2`i' n`i' ctl`i' c`i' sd`i' mn`i' mx`i'
+
+		global var`i' = variablelabel[`i']
+		
+		/* Normal */
+		global ctl`i' = strofreal(ctl_mean[`i'], "%6.3f")
+		global crt`i' = strofreal(treat_mean_courtonly[`i'], "%6.3f")
+		global ag`i' = strofreal(treat_mean_courtag[`i'], "%6.3f")
+		
+		global p`i' = strofreal(jointpvalue[`i'], "%6.3f")
+		
+		global n`i' = strofreal(N[`i'], "%6.0fc")
+	
+	}
+	
+	
+	/* Assign stars and set p-value to <0.001 instead of 0.000 */
+	*do "${code}/pfm_radiodistribution/01_helpers/pfm_court_helper_stars.do"	
+			
+	
+/* Make Table __________________________________________________________________*/
+
+texdoc init "${court_clean_tables}/pfm_court_tables_balance.tex", replace nolog
+
+texdoc write 	{
+texdoc write 	\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+texdoc write 	\begin{tabular}{l*{12}{c}}
+texdoc write 	\Xhline{2\arrayrulewidth}\addlinespace[3pt]	
+
+texdoc write    &\multicolumn{3}{c}{Treatment Arm Mean}   \tstrut \bstrut \\ \cmidrule(r){2-4} 
+
+texdoc write    &\multicolumn{1}{c}{Control} &\multicolumn{1}{c}{Court Only} &\multicolumn{1}{c}{Court + AG} &\multicolumn{1}{c}{Observations}  &\multicolumn{1}{c}{\$p\$-value}  \\  
+
+texdoc write 	\hline \noalign{\vskip 0.1cm} 
+texdoc write 	$var1						& $ctl1		  			& $crt1					& $ag1 			& $n1 			& $p1 				\\
+texdoc write 	$var2						& $ctl2		  			& $crt2					& $ag2 			& $n2 			& $p2 				\\
+texdoc write 	$var3						& $ctl3		  			& $crt3					& $ag3 			& $n3 			& $p3 				\\
+texdoc write 	$var4						& $ctl4		  			& $crt4					& $ag4 			& $n4 			& $p4 				\\
+texdoc write 	$var5						& $ctl5		  			& $crt5					& $ag5 			& $n5 			& $p5 				\\
+texdoc write 	$var6						& $ctl6		  			& $crt6					& $ag6 			& $n6 			& $p6 				\\
+texdoc write 	$var7						& $ctl7		  			& $crt7					& $ag7 			& $n7 			& $p7 				\\
+texdoc write 	$var8						& $ctl8		  			& $crt8					& $ag8 			& $n8 			& $p8 				\\
+texdoc write 	$var9						& $ctl9		  			& $crt9					& $ag9 			& $n9 			& $p9 				\\
+texdoc write 	$var10						& $ctl10		  		& $crt10				& $ag10 			& $n10 			& $p10 				\\
+texdoc write 	$var11						& $ctl11		  		& $crt11				& $ag11 			& $n11 			& $p11 				\\
+texdoc write 	$var12						& $ctl12		  		& $crt12				& $ag12 			& $n12 			& $p12 				\\
+texdoc write 	$var13						& $ctl13		  		& $crt13				& $ag13 			& $n13 			& $p13 				\\
+texdoc write 	$var14						& $ctl14		  		& $crt14				& $ag14 			& $n14 			& $p14 				\\
+texdoc write 	$var15						& $ctl15		  		& $crt15				& $ag15 			& $n15 			& $p15 				\\
+texdoc write 	$var16						& $ctl16		  		& $crt16				& $ag16 			& $n16 			& $p16 				\\
+texdoc write 	$var17						& $ctl17		  		& $crt17				& $ag17 			& $n17 			& $p17 				\\
+texdoc write 	$var18						& $ctl18		  		& $crt18				& $ag18 			& $n18 			& $p18 				\\
+texdoc write 	$var19						& $ctl19		  		& $crt19				& $ag19 			& $n19 			& $p19 				\\
+texdoc write 	$var20						& $ctl20		  		& $crt20				& $ag20 			& $n20 			& $p20 				\\
+texdoc write 	$var21						& $ctl21		  		& $crt21				& $ag21 			& $n21 			& $p21 				\\
+texdoc write 	$var22						& $ctl22		  		& $crt22				& $ag22 			& $n22 			& $p22 				\\
+texdoc write 	$var23						& $ctl23		  		& $crt23				& $ag23 			& $n23 			& $p23 				\\
+texdoc write 	$var24						& $ctl24		  		& $crt24				& $ag24 			& $n24 			& $p24 				\\
+texdoc write 	$var25						& $ctl25		  		& $crt25				& $ag25 			& $n25 			& $p25 				\\
+texdoc write 	$var26						& $ctl26		  		& $crt26				& $ag26 			& $n26 			& $p26 				\\
+texdoc write 	\Xhline{2\arrayrulewidth}
+texdoc write 	\end{tabular}
+texdoc write 	}
+
+texdoc close
+
+
+
+
+
