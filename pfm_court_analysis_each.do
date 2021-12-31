@@ -78,7 +78,7 @@ ________________________________________________________________________________
 	/* Move this to prelim */ 
 	replace treat_courtag = 0 if treat_courtonly == 1
 	replace treat_courtonly = 0 if treat_courtag == 1
-
+stop
 
 /* Run for Each Index __________________________________________________________*/
 
@@ -183,7 +183,7 @@ foreach dv of global em {
 			global N 	= e(N) 				//N
 
 
-/* Run lasso regression ____________________________________________________*/	
+/* Run lasso regression ________________________________________________________*/	
 					
 	/* Run and save lasso */
 	qui lasso linear `dv' ${cov_lasso} 
