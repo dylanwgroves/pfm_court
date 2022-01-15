@@ -31,7 +31,7 @@ ________________________________________________________________________________
 		#d ;
 			
 			/* Rerandomization count */
-			local rerandcount	100
+			local rerandcount	200
 								;
 				
 				
@@ -73,16 +73,16 @@ ________________________________________________________________________________
 		#d cr
 
 	
-	drop if startdate < mdy(12, 11, 2020)
+	drop if startdate < mdy(15, 11, 2020)
 		
 	/* Move this to prelim */ 
 	replace treat_courtag = 0 if treat_courtonly == 1
 	replace treat_courtonly = 0 if treat_courtag == 1
-stop
+
 
 /* Run for Each Index __________________________________________________________*/
 
-	/* Define Matrix _______________________________________________________________*/
+	/* Define Matrix ___________________________________________________________*/
 				
 		/* Set Put Excel File Name */
 		putexcel clear
@@ -128,7 +128,7 @@ stop
 		qui putexcel AE1 = ("max")
 		qui putexcel AF1 = ("test")
 	
-
+stop
 local row = 2	
 foreach dv of global em {		
 	
@@ -210,21 +210,21 @@ foreach dv of global em {
 			}
 			
 			/* Save values from regression */
-			global lasso_coef_courtonly 	= table[1,1]    		//beta
+			global lasso_coef_courtonly 	= table[1,1]    	//beta
 			global lasso_se_courtonly 	 	= table[2,1]		//se
 			*global lasso_t_`treat'  	 	= table[3,1]		//t
 			global lasso_pval_courtonly		= table[4,1]/2		//pval
 			
-			global lasso_coef_courtag 		= table[1,2] //beta
-			global lasso_se_courtag	 		= table[2,2]	//se
-			*global lasso_t_`treat'  	 	= table[3,2]	//t
-			global lasso_pval_courtag	 	= table[4,2]/2	//pval
+			global lasso_coef_courtag 		= table[1,2] 		//beta
+			global lasso_se_courtag	 		= table[2,2]		//se
+			*global lasso_t_`treat'  	 	= table[3,2]		//t
+			global lasso_pval_courtag	 	= table[4,2]/2		//pval
 		
 			global lasso_r2 				= `e(r2_a)' 		//r-squared
 			global lasso_N 					= e(N) 				//N
 
 		
-		/* One-sided p-value for predicted effects 								// THIS NEEDS TO BE ADJUSTED ACCORDING TO HYPOTHESIS
+		/* One-sided p-value for predicted effects 				//THIS NEEDS TO BE ADJUSTED ACCORDING TO HYPOTHESIS
 		if table[1,1] > 0 {
 			global lasso_pval = ttail(e(df_r),abs(${lasso_t}))
 			global help "One-tailed"
@@ -236,7 +236,7 @@ foreach dv of global em {
 		*/	
 		
 		
-/* Export to Excel _________________________________________________________*/ 
+/* Export to Excel _____________________________________________________________*/ 
 
 	qui putexcel A`row' = ("${varname}")
 	qui putexcel B`row' = ("${variablelabel}")
