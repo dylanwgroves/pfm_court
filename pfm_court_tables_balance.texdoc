@@ -65,15 +65,17 @@ ________________________________________________________________________________
 						ptixpref_rank_justice ptixpref_rank_electric 
 						ptixpref_rank_sanit ptixpref_rank_roads 
 						ptixpref_rank_health
+						radio_ever 
+						radio_listen_hrs 
+						radio_type_news 
+						radio_natleader
 						;
 	#d cr 
 						
-						
-
 	gen rank = .
 	local i = 1
 	
-	foreach var of local sumstat_vars {
+	foreach var of local balance_vars {
 		replace rank = `i' if variable == "`var'"
 		local i = `i' + 1
 	}	
@@ -81,7 +83,6 @@ ________________________________________________________________________________
 	drop if rank == .
 	*/
 	gsort jointpvalue
-
 
 /* Any Labelling Changes _______________________________________________________*/
 
@@ -114,8 +115,12 @@ ________________________________________________________________________________
 	replace variablelabel = "Conformity is good" if variable == "values_conformity"	
 	replace variablelabel = "Feeling thermo. - religious other" if variable == "prej_thermo_out_rel"	
 	replace variablelabel = "Feeling thermo. - tribal other" if variable == "prej_thermo_out_eth"	
-	
+	replace variablelabel = "Ever listen to radio" if variable == "radio_ever"	
+	replace variablelabel = "Hours listen to radio/day" if variable == "radio_listen_hrs"	
+	replace variablelabel = "Listen to news on radio" if variable == "radio_type_news"	
+	replace variablelabel = "Heard national leader on radio" if variable == "radio_natleader"		
 
+				 
 /* Create variables ____________________________________________________________*/
 
 	count
@@ -158,15 +163,15 @@ texdoc write    &\multicolumn{3}{c}{Treatment Arm Mean}   \tstrut \bstrut \\ \cm
 texdoc write    &\multicolumn{1}{c}{Control} &\multicolumn{1}{c}{Court Only} &\multicolumn{1}{c}{Court + AG} &\multicolumn{1}{c}{Observations}  &\multicolumn{1}{c}{\$p\$-value}  \\  
 
 texdoc write 	\hline \noalign{\vskip 0.1cm} 
-texdoc write 	$var1						& $ctl1		  			& $crt1					& $ag1 			& $n1 			& $p1 				\\
-texdoc write 	$var2						& $ctl2		  			& $crt2					& $ag2 			& $n2 			& $p2 				\\
-texdoc write 	$var3						& $ctl3		  			& $crt3					& $ag3 			& $n3 			& $p3 				\\
-texdoc write 	$var4						& $ctl4		  			& $crt4					& $ag4 			& $n4 			& $p4 				\\
-texdoc write 	$var5						& $ctl5		  			& $crt5					& $ag5 			& $n5 			& $p5 				\\
-texdoc write 	$var6						& $ctl6		  			& $crt6					& $ag6 			& $n6 			& $p6 				\\
-texdoc write 	$var7						& $ctl7		  			& $crt7					& $ag7 			& $n7 			& $p7 				\\
-texdoc write 	$var8						& $ctl8		  			& $crt8					& $ag8 			& $n8 			& $p8 				\\
-texdoc write 	$var9						& $ctl9		  			& $crt9					& $ag9 			& $n9 			& $p9 				\\
+texdoc write 	$var1						& $ctl1		  			& $crt1					& $ag1 				& $n1 			& $p1 				\\
+texdoc write 	$var2						& $ctl2		  			& $crt2					& $ag2 				& $n2 			& $p2 				\\
+texdoc write 	$var3						& $ctl3		  			& $crt3					& $ag3 				& $n3 			& $p3 				\\
+texdoc write 	$var4						& $ctl4		  			& $crt4					& $ag4 				& $n4 			& $p4 				\\
+texdoc write 	$var5						& $ctl5		  			& $crt5					& $ag5 				& $n5 			& $p5 				\\
+texdoc write 	$var6						& $ctl6		  			& $crt6					& $ag6 				& $n6 			& $p6 				\\
+texdoc write 	$var7						& $ctl7		  			& $crt7					& $ag7 				& $n7 			& $p7 				\\
+texdoc write 	$var8						& $ctl8		  			& $crt8					& $ag8 				& $n8 			& $p8 				\\
+texdoc write 	$var9						& $ctl9		  			& $crt9					& $ag9 				& $n9 			& $p9 				\\
 texdoc write 	$var10						& $ctl10		  		& $crt10				& $ag10 			& $n10 			& $p10 				\\
 texdoc write 	$var11						& $ctl11		  		& $crt11				& $ag11 			& $n11 			& $p11 				\\
 texdoc write 	$var12						& $ctl12		  		& $crt12				& $ag12 			& $n12 			& $p12 				\\
@@ -184,6 +189,10 @@ texdoc write 	$var23						& $ctl23		  		& $crt23				& $ag23 			& $n23 			& $p23 
 texdoc write 	$var24						& $ctl24		  		& $crt24				& $ag24 			& $n24 			& $p24 				\\
 texdoc write 	$var25						& $ctl25		  		& $crt25				& $ag25 			& $n25 			& $p25 				\\
 texdoc write 	$var26						& $ctl26		  		& $crt26				& $ag26 			& $n26 			& $p26 				\\
+texdoc write 	$var27						& $ctl27		  		& $crt27				& $ag27 			& $n27 			& $p27 				\\
+texdoc write 	$var28						& $ctl28		  		& $crt28				& $ag28 			& $n28 			& $p28 				\\
+texdoc write 	$var29						& $ctl29		  		& $crt29				& $ag29 			& $n29 			& $p29 				\\
+texdoc write 	$var30						& $ctl30		  		& $crt30				& $ag30 			& $n30 			& $p30 				\\
 texdoc write 	\Xhline{2\arrayrulewidth}
 texdoc write 	\end{tabular}
 texdoc write 	}

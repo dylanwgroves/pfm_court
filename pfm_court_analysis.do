@@ -71,8 +71,9 @@ ________________________________________________________________________________
 
 	
 	drop if startdate < mdy(12, 11, 2020)
-	
-	stop
+stop
+
+	reg em_reject_index treat_courtonly svy_partner i.treat_pi
 
 /* Run for Each Index __________________________________________________________*/
 

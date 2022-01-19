@@ -25,7 +25,10 @@ ________________________________________________________________________________
 	/* Load Data ___________________________________________________________________*/	
 
 		use "${data_court}/pfm_court_analysis.dta", clear
+		
+		recode resp_married (-222 4 5 6 7 = 0)(1 2 3 = 1)
 
+		
 	/* Define Globals and Locals ___________________________________________________*/
 		#d ;
 			
@@ -62,6 +65,10 @@ ________________________________________________________________________________
 								ptixpref_rank_justice ptixpref_rank_electric 
 								ptixpref_rank_sanit ptixpref_rank_roads 
 								ptixpref_rank_health
+								radio_ever 
+								radio_listen_hrs 
+								radio_type_news 
+								radio_natleader
 								;
 			
 			/* Covariates */	
@@ -85,6 +92,7 @@ ________________________________________________________________________________
 	
 	replace treat_courtonly = 0 if treat_courtag == 1
 	replace treat_courtag = 0 if treat_courtonly == 1
+
 
 /* Run for Each Index __________________________________________________________*/
 
