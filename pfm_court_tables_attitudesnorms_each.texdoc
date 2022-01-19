@@ -28,9 +28,9 @@ ________________________________________________________________________________
 	import excel "${court_tables}/pfm_court_analysis_each.xlsx", firstrow clear
 	save `dta_main', replace
 
-	rename coef_all coef_courtonly
-	rename se_all 	se_courtonly 
-	rename pval_all pval_courtonly 
+	*rename coef_all coef_courtonly
+	*rename se_all 	se_courtonly 
+	*rename pval_all pval_courtonly 
 
 /* Sort Data ___________________________________________________________________*/
 
@@ -60,7 +60,7 @@ ________________________________________________________________________________
 	/* Individual Data */
 	# d ;
 	local sumstat_vars 	
-						em_reject_index
+						em_reject_all
 						em_reject
 						em_reject_money_dum 
 						em_reject_religion_dum
@@ -85,6 +85,7 @@ ________________________________________________________________________________
 /* Any Labelling Changes _______________________________________________________*/
 
 	tostring variablelabel, replace
+	replace variablelabel = "Reject all EM" if variable == "em_reject_all"
 	replace variablelabel = "Reject EM Index" if variable == "em_reject_index"
 	replace variablelabel = "General" if variable == "em_reject"
 	replace variablelabel = "If Needs Money" if variable == "em_reject_money_dum"

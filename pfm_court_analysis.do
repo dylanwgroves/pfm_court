@@ -25,13 +25,14 @@ ________________________________________________________________________________
 	/* Load Data ___________________________________________________________________*/	
 
 		use "${data_court}/pfm_court_analysis.dta", clear
+		egen em_reject_all = rowmin(em_reject_religion_dum em_reject_money_dum em_reject)
 
 
 	/* Define Globals and Locals ___________________________________________________*/
 		#d ;
 			
 			/* Rerandomization count */
-			local rerandcount	100
+			local rerandcount	200
 								;
 				
 				
@@ -65,15 +66,14 @@ ________________________________________________________________________________
 								resp_muslim
 								resp_age
 								i.village
+								i.svy_enum
 								;						
 			
 		#d cr
 
 	
 	drop if startdate < mdy(12, 11, 2020)
-stop
 
-	reg em_reject_index treat_courtonly svy_partner i.treat_pi
 
 /* Run for Each Index __________________________________________________________*/
 
