@@ -28,9 +28,9 @@ ________________________________________________________________________________
 	import excel "${court_tables}/pfm_court_analysis_each.xlsx", firstrow clear
 	save `dta_main', replace
 
-	rename coef_all coef_courtonly
-	rename se_all 	se_courtonly 
-	rename pval_all pval_courtonly 
+	*rename coef_all coef_courtonly
+	*rename se_all 	se_courtonly 
+	*rename pval_all pval_courtonly 
 
 /* Sort Data ___________________________________________________________________*/
 

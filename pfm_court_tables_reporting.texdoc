@@ -40,7 +40,7 @@ ________________________________________________________________________________
 			lasso_r2 lasso_N lasso_ctls_num ///
 			ctl_mean vill_sd min max 
 			
-	destring 	variable variablelabel ///
+	cap destring 	variable variablelabel ///
 				coef_all se_all pval_all ///
 				coef_aginteract se_aginteract pval_aginteract ///
 				r2 N ///

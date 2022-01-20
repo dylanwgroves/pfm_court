@@ -40,6 +40,12 @@ ________________________________________________________________________________
 			set seed 			1956
 								;
 								
+			/* Treatments */
+			global treats		treat_courtonly 
+								treat_courtag
+								treat_courtvsag
+								;
+			
 			/* Outcomes */
 			global em 						
 								em_reject_all
@@ -78,9 +84,13 @@ ________________________________________________________________________________
 	*drop if startdate < mdy(12, 11, 2020)
 		
 	/* Move this to prelim */ 
-	replace treat_courtag = 0 if treat_courtonly == 1
-	replace treat_courtonly = 0 if treat_courtag == 1
+	*replace treat_courtag = 0 if treat_courtonly == 1
+	*replace treat_courtonly = 0 if treat_courtag == 1
+	gen treat_courtvsag = 0 if treat_courtonly == 1
+		replace treat_courtvsag = 1 if treat_courtag == 1
 
+stop		
+foreach treat of global treats {
 
 /* Run for Each Index __________________________________________________________*/
 
@@ -88,7 +98,7 @@ ________________________________________________________________________________
 				
 		/* Set Put Excel File Name */
 		putexcel clear
-		putexcel set "${court_tables}/pfm_court_analysis_each.xlsx", replace
+		putexcel set "${court_tables}/pfm_court_analysis_apcg.xlsx", sheet(`treat', replace) modify
 		
 		qui putexcel A1 = ("variable")
 		qui putexcel B1 = ("variablelabel")
@@ -100,26 +110,16 @@ ________________________________________________________________________________
 		qui putexcel G1 = ("r2")
 		qui putexcel H1 = ("N")
 		
-		qui putexcel I1 = ("lasso_coef_courtonly")
-		qui putexcel J1 = ("lasso_se_courtonly")
-		qui putexcel K1 = ("lasso_pval_courtonly")
-		qui putexcel L1 = ("lasso_ripval_courtonly")
+		qui putexcel I1 = ("lasso_coef_`treat'")
+		qui putexcel J1 = ("lasso_se_`treat'")
+		qui putexcel K1 = ("lasso_pval_`treat'")
+		qui putexcel L1 = ("lasso_ripval_`treat'")
 		qui putexcel M1 = ("lasso_r2")
 		qui putexcel N1 = ("lasso_N")
 		
 		qui putexcel O1 = ("treat_mean_courtonly")
 		qui putexcel P1 = ("treat_sd_courtonly")
-		
-		qui putexcel Q1 = ("coef_courtag")
-		qui putexcel R1 = ("se_courtag")
-		qui putexcel S1 = ("pval_courtag")
-		qui putexcel T1 = ("ripval_courtag")
-		
-		qui putexcel U1 = ("lasso_coef_courtag")	
-		qui putexcel V1 = ("lasso_se_courtag")
-		qui putexcel W1 = ("lasso_pval_courtag")
-		qui putexcel X1 = ("lasso_ripval_courtag")
-		
+
 		qui putexcel Y1 = ("lasso_ctls")
 		qui putexcel Z1 = ("lasso_ctls_num")
 		
@@ -132,6 +132,9 @@ ________________________________________________________________________________
 	
 
 local row = 2	
+
+
+
 foreach dv of global em {		
 	
 /* Standard Regression _________________________________________________________*/
@@ -144,7 +147,7 @@ foreach dv of global em {
 		*/
 		
 		/* Control mean */
-		qui sum `dv' if treat_courtall == 0
+		qui sum `dv' if `treat' == 0
 			global ctl_mean `r(mean)'
 			global ctl_sd `r(sd)'
 			
@@ -155,32 +158,39 @@ foreach dv of global em {
 		
 		/* Control village sd */
 		preserve
-		qui collapse (mean) `dv' treat_courtall, by(village)
+		qui collapse (mean) `dv' `treat', by(village)
 		qui sum `dv'
 			global vill_sd : di %6.3f `r(sd)'
 		restore
 
 		/* Run basic regression */
-		foreach treat in courtonly courtag {
-		qui sum `dv' if treat_`treat' == 1
+		qui sum `dv' if `treat' == 1
 			global treat_mean_`treat' `r(mean)'
 			global treat_sd_`treat' `r(sd)'
-		}
 		
-		qui reg `dv' treat_courtonly treat_courtag ${cov_always}					     			// This is the core regression
+		qui reg `dv' `treat' ${cov_always}					     			// This is the core regression
 			matrix table = r(table)
 			
 			/* Save values from regression */
-			global coef_courtonly 	= table[1,1]    	//beta
-			global se_courtonly	 	= table[2,1]		//se
-			*global t_`treat'  	 	= table[3,1]		//t
-			global pval_courtonly 	= table[4,1]/2		//pval
+			global coef 	= table[1,1]    	//beta
+			global se	 	= table[2,1]		//se
+			global t  	 	= table[3,1]		//t
 			
-			global coef_courtag		= table[1,2]    	//beta
-			global se_courtag	 	= table[2,2]		//se
-			*global t_`treat'  	 	= table[3,2]		//t
-			global pval_courtag 	= table[4,2]/2		//pval
-			
+			if strpos("`treat'", "treat_courtvsag") {
+					global pval = 2*ttail(e(df_r),abs(${t}))
+					global test twotailed
+				}
+				else {
+					if table[1,1] > 0 {
+						global pval = ttail(e(df_r),abs(${t})) 
+						global test onesided
+					}
+						else if table[1,1] < 0 {
+							global pval = 1-ttail(e(df_r),abs(${t}))
+							global test onesidedneg
+						}
+				}
+							
 			global r2 	= `e(r2_a)' 		//r-squared
 			global N 	= e(N) 				//N
 
@@ -201,26 +211,35 @@ foreach dv of global em {
 		
 			/* If lasso selected covariates for both */
 			if ${lasso_ctls_num} != 0  {
-				qui reg `dv' treat_courtonly treat_courtag ${lasso_ctls} ${cov_always}    
+				qui reg `dv' `treat' ${lasso_ctls} ${cov_always}    
 				matrix table = r(table)
 			}
 			
 			/* If lasso selected no covariates */
 			if ${lasso_ctls_num} == 0 {		
-				qui reg `dv' treat_courtonly treat_courtag ${cov_always}
+				qui reg `dv' `treat' ${cov_always}
 				matrix table = r(table)
 			}
 			
 			/* Save values from regression */
-			global lasso_coef_courtonly 	= table[1,1]    	//beta
-			global lasso_se_courtonly 	 	= table[2,1]		//se
-			*global lasso_t_`treat'  	 	= table[3,1]		//t
-			global lasso_pval_courtonly		= table[4,1]/2		//pval
-			
-			global lasso_coef_courtag 		= table[1,2] 		//beta
-			global lasso_se_courtag	 		= table[2,2]		//se
-			*global lasso_t_`treat'  	 	= table[3,2]		//t
-			global lasso_pval_courtag	 	= table[4,2]/2		//pval
+			global lasso_coef = table[1,1]    		//beta
+			global lasso_se   = table[2,1]		//se
+			global lasso_t    = table[3,1]		//t
+
+			if strpos("`test'", "treat_courtag") {
+					global lasso_pval 	= 2*ttail(e(df_r),abs(${t}))
+					global test twotailed
+				}
+				else {
+					if table[1,1] > 0 {
+						global lasso_pval = ttail(e(df_r),abs(${t})) 
+						global test onesided
+					}
+						else if table[1,1] < 0 {
+							global lasso_pval = 1-ttail(e(df_r),abs(${t}))
+							global test onesidedneg
+						}
+				}
 		
 			global lasso_r2 				= `e(r2_a)' 		//r-squared
 			global lasso_N 					= e(N) 				//N
@@ -243,32 +262,22 @@ foreach dv of global em {
 	qui putexcel A`row' = ("${varname}")
 	qui putexcel B`row' = ("${variablelabel}")
 	
-	qui putexcel C`row' = ("${coef_courtonly}")
-	qui putexcel D`row' = ("${se_courtonly}")
-	qui putexcel E`row' = ("${pval_courtonly}")
-	qui putexcel F`row' = ("${ripval_courtonly}")
+	qui putexcel C`row' = ("${coef}")
+	qui putexcel D`row' = ("${se}")
+	qui putexcel E`row' = ("${pval}")
+	qui putexcel F`row' = ("${ripval}")
 	qui putexcel G`row' = ("${r2}")
 	qui putexcel H`row' = ("${N}")
 	
-	qui putexcel I`row' = ("${lasso_coef_courtonly}")
-	qui putexcel J`row' = ("${lasso_se_courtonly}")
-	qui putexcel K`row' = ("${lasso_pval_courtonly}")
-	qui putexcel L`row' = ("${lasso_ripval_courtonly}")
+	qui putexcel I`row' = ("${lasso_coef}")
+	qui putexcel J`row' = ("${lasso_se}")
+	qui putexcel K`row' = ("${lasso_pval}")
+	qui putexcel L`row' = ("${lasso_ripval}")
 	qui putexcel M`row' = ("${lasso_r2}")
 	qui putexcel N`row' = ("${lasso_N}")
 	
-	qui putexcel O`row' = ("${treat_mean_courtonly}")
-	qui putexcel P`row' = ("${treat_sd_courtonly}")
-	
-	qui putexcel Q`row' = ("${coef_courtag}")
-	qui putexcel R`row' = ("${se_courtag}")
-	qui putexcel S`row' = ("${pval_courtag}")
-	qui putexcel T`row' = ("${ripval_courtag}")
-	
-	qui putexcel U`row' = ("${lasso_coef_courtag}")
-	qui putexcel V`row' = ("${lasso_se_courtag}")
-	qui putexcel W`row' = ("${lasso_pval_courtag}")
-	qui putexcel X`row' = ("${lasso_ripval_courtag}")
+	qui putexcel O`row' = ("${treat_mean}")
+	qui putexcel P`row' = ("${treat_sd}")
 	
 	qui putexcel Y`row' = ("${lasso_ctls}")
 	qui putexcel Z`row' = ("${lasso_ctls_num}")
@@ -285,3 +294,4 @@ foreach dv of global em {
 	local row = `row' + 1
 	
 }	
+}

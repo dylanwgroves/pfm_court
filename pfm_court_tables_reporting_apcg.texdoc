@@ -61,7 +61,7 @@ ________________________________________________________________________________
 	/* Individual Data */
 	# d ;
 	local sumstat_vars 	
-						em_report
+						em_norm_reject_dum
 						em_report_norm
 						;
 	#d cr 
@@ -83,8 +83,8 @@ ________________________________________________________________________________
 /* Any Labelling Changes _______________________________________________________*/
 
 	tostring variablelabel, replace
-	replace variablelabel = "Self Would Report" if variable == "em_report"
-	replace variablelabel = "Comm. Would Report" if variable == "em_report_norm"
+	replace variablelabel = "Community Would Reject" if variable == "em_norm_reject_dum"
+	replace variablelabel = "Community Would Report" if variable == "em_report_norm"
 
 /* Create variables ____________________________________________________________*/
 

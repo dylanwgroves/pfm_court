@@ -33,7 +33,7 @@ ________________________________________________________________________________
 		#d ;
 			
 			/* Rerandomization count */
-			local rerandcount	100
+			local rerandcount	200
 								;
 				
 				
@@ -88,7 +88,7 @@ ________________________________________________________________________________
 		#d cr
 
 	
-	drop if startdate < mdy(12, 11, 2020)
+	*drop if startdate < mdy(12, 11, 2020)
 	
 	replace treat_courtonly = 0 if treat_courtag == 1
 	replace treat_courtag = 0 if treat_courtonly == 1

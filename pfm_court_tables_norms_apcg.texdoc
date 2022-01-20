@@ -25,31 +25,27 @@ ________________________________________________________________________________
 
 /* Load Data ___________________________________________________________________*/	
 
-	import excel "${court_tables}/pfm_court_analysis_each.xlsx", firstrow clear
+	import excel "${court_tables}/pfm_court_analysis_apcg.xlsx", firstrow clear
 	save `dta_main', replace
 	
-	*rename coef_all coef_courtonly
-	*rename se_all 	se_courtonly 
-	*rename pval_all pval_courtonly 
+	*rename coef_all coef
+	*rename se_all 	se 
+	*rename pval_all pval 
 
 
 /* Sort Data ___________________________________________________________________*/
 
 	/* Individual Data */
-	sort 	coef_courtonly se_courtonly pval_courtonly ///
-			coef_courtag se_courtag pval_courtag ///
-			r2 N ///
-			lasso_coef_courtonly lasso_se_courtonly lasso_pval_courtonly ///
-			lasso_coef_courtag lasso_se_courtag lasso_pval_courtag ///
-			lasso_r2 lasso_N lasso_ctls_num ///
-			ctl_mean vill_sd min max 
+		sort 	coef se pval ///
+				r2 N ///
+				lasso_coef lasso_se lasso_pval ///
+				lasso_r2 lasso_N lasso_ctls_num ///
+				ctl_mean vill_sd min max 
 			
 	destring 	variable variablelabel ///
-				coef_courtonly se_courtonly pval_courtonly ///
-				coef_courtag se_courtag pval_courtag ///
+				coef se pval ///
 				r2 N ///
-				lasso_coef_courtonly lasso_se_courtonly lasso_pval_courtonly ///
-				lasso_coef_courtag lasso_se_courtag lasso_pval_courtag ///
+				lasso_coef lasso_se lasso_pval ///
 				lasso_r2 lasso_N lasso_ctls lasso_ctls_num ///
 				treat_mean treat_sd ctl_mean ctl_sd vill_sd min max, replace
 				
@@ -61,7 +57,7 @@ ________________________________________________________________________________
 	/* Individual Data */
 	# d ;
 	local sumstat_vars 	
-						em_report
+						em_norm_reject_dum
 						em_report_norm
 						;
 	#d cr 
@@ -83,8 +79,8 @@ ________________________________________________________________________________
 /* Any Labelling Changes _______________________________________________________*/
 
 	tostring variablelabel, replace
-	replace variablelabel = "Self Would Report" if variable == "em_report"
-	replace variablelabel = "Comm. Would Report" if variable == "em_report_norm"
+	replace variablelabel = "Community Would Reject" if variable == "em_norm_reject_dum"
+	replace variablelabel = "Community Would Report" if variable == "em_report_norm"
 
 /* Create variables ____________________________________________________________*/
 
@@ -99,26 +95,18 @@ ________________________________________________________________________________
 		global var`i' = variablelabel[`i']
 		
 		/* Normal */
-		global b`i' = strofreal(coef_courtonly[`i'], "%6.3f")
-		global se`i' = strofreal(se_courtonly[`i'], "%6.3f")
-		global p`i' = strofreal(pval_courtonly[`i'], "%6.3f")
-		
-		global b`i'x = strofreal(coef_courtag[`i'], "%6.3f")
-		global se`i'x = strofreal(se_courtag[`i'], "%6.3f")
-		global p`i'x = strofreal(pval_courtag[`i'], "%6.3f")
+		global b`i' = strofreal(coef[`i'], "%6.3f")
+		global se`i' = strofreal(se[`i'], "%6.3f")
+		global p`i' = strofreal(pval[`i'], "%6.3f")
 		
 		global r`i' = strofreal(r2[`i'], "%6.2f")
 		global n`i' = strofreal(N[`i'], "%6.0fc")
 		global ctl`i' = "No"
 		
 		/* Lasso */
-		global b`i'c = strofreal(lasso_coef_courtonly[`i'], "%6.3f")
-		global se`i'c = strofreal(lasso_se_courtonly[`i'], "%6.3f")
-		global p`i'c = strofreal(lasso_pval_courtonly[`i'], "%6.3f")
-		
-		global b`i'xc = strofreal(lasso_coef_courtag[`i'], "%6.3f")
-		global se`i'xc = strofreal(lasso_se_courtag[`i'], "%6.3f")
-		global p`i'xc = strofreal(lasso_pval_courtag[`i'], "%6.3f")
+		global b`i'c = strofreal(lasso_coef[`i'], "%6.3f")
+		global se`i'c = strofreal(lasso_se[`i'], "%6.3f")
+		global p`i'c = strofreal(lasso_pval[`i'], "%6.3f")
 	
 		global r`i'c = strofreal(lasso_r2[`i'], "%6.2f")
 		global n`i'c = strofreal(lasso_N[`i'], "%6.0fc")
@@ -140,7 +128,7 @@ ________________________________________________________________________________
 	
 /* Make Table __________________________________________________________________*/
 
-texdoc init "${court_clean_tables}/pfm_court_tables_results_reporting_each.tex", replace nolog
+texdoc init "${court_clean_tables}/pfm_court_tables_results_norms_apcg.tex", replace nolog
 
 texdoc write 	{
 texdoc write 	\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
@@ -152,16 +140,11 @@ texdoc write    							&\multicolumn{2}{c}{$var1} &\multicolumn{2}{c}{$var2}	\ts
 
 texdoc write    							& (1)				& (2)				& (3)			& (4)								\\
 
-texdoc write 	Court Rejects EM			& $b1\sym{$s1}  	& $b1c\sym{$s1c} 	& $b2\sym{$s2} 	& $b2c\sym{$s2c} 					\\
+texdoc write 	Court Only Message			& $b1\sym{$s1}  	& $b1c\sym{$s1c} 	& $b2\sym{$s2} 	& $b2c\sym{$s2c} 					\\
 texdoc write    Standard Error 				& $se1				& $se1c				& $se2    		& $se2c  							\\
 texdoc write 	RI \$p\$-value 				& $p1				& $p1c 				& $p2			& $p2c								\\
-texdoc write 	Hypothesis					& +					& + 				& +				& + 								\\
 texdoc write 	\hline \noalign{\vskip 0.1cm} 
-texdoc write 	Court Rejects + AG Supports EM 	& $b1x\sym{$s1x}  	& $b1xc\sym{$s1c} 	& $b2x\sym{$s2x} & $b2xc\sym{$s2xc} 				\\
-texdoc write    Standard Error 				& $se1x				& $se1xc			& $se2x    		& $se2xc  							\\
-texdoc write 	RI \$p\$-value 				& $p1x				& $p1xc 			& $p2x			& $p2xc								\\
 texdoc write 	Hypothesis					& +					& + 				& +				& + 								\\
-texdoc write 	\hline \noalign{\vskip 0.1cm} 
 texdoc write 	Control Mean      			& $c1				& $c1				& $c2			& $c2								\\
 texdoc write 	Control SD 					& $sd1				& $sd1				& $sd2			& $sd2								\\
 texdoc write	DV Range					& [$mn1-$mx1]		& [$mn1-$mx1]		& [$mn2-$mx2]	& [$mn2-$mx2]						\\	

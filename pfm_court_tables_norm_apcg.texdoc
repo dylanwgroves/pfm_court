@@ -36,13 +36,13 @@ ________________________________________________________________________________
 /* Sort Data ___________________________________________________________________*/
 
 	/* Individual Data */
-	sort 	coef_courtonly se_courtonly pval_courtonly ///
-			coef_courtag se_courtag pval_courtag ///
-			r2 N ///
-			lasso_coef_courtonly lasso_se_courtonly lasso_pval_courtonly ///
-			lasso_coef_courtag lasso_se_courtag lasso_pval_courtag ///
-			lasso_r2 lasso_N lasso_ctls_num ///
-			ctl_mean vill_sd min max 
+		sort 	coef_courtonly se_courtonly pval_courtonly ///
+				coef_courtag se_courtag pval_courtag ///
+				r2 N ///
+				lasso_coef_courtonly lasso_se_courtonly lasso_pval_courtonly ///
+				lasso_coef_courtag lasso_se_courtag lasso_pval_courtag ///
+				lasso_r2 lasso_N lasso_ctls_num ///
+				ctl_mean vill_sd min max 
 			
 	destring 	variable variablelabel ///
 				coef_courtonly se_courtonly pval_courtonly ///
@@ -61,7 +61,7 @@ ________________________________________________________________________________
 	/* Individual Data */
 	# d ;
 	local sumstat_vars 	
-						em_report
+						em_norm_reject_dum
 						em_report_norm
 						;
 	#d cr 
@@ -83,8 +83,8 @@ ________________________________________________________________________________
 /* Any Labelling Changes _______________________________________________________*/
 
 	tostring variablelabel, replace
-	replace variablelabel = "Self Would Report" if variable == "em_report"
-	replace variablelabel = "Comm. Would Report" if variable == "em_report_norm"
+	replace variablelabel = "Community Would Reject" if variable == "em_norm_reject_dum"
+	replace variablelabel = "Community Would Report" if variable == "em_report_norm"
 
 /* Create variables ____________________________________________________________*/
 
@@ -140,7 +140,7 @@ ________________________________________________________________________________
 	
 /* Make Table __________________________________________________________________*/
 
-texdoc init "${court_clean_tables}/pfm_court_tables_results_reporting_each.tex", replace nolog
+texdoc init "${court_clean_tables}/pfm_court_tables_results_norms_apcg.tex", replace nolog
 
 texdoc write 	{
 texdoc write 	\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
