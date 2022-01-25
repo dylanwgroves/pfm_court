@@ -89,7 +89,7 @@ ________________________________________________________________________________
 	gen treat_courtvsag = 0 if treat_courtonly == 1
 		replace treat_courtvsag = 1 if treat_courtag == 1
 
-stop		
+		
 foreach treat of global treats {
 
 /* Run for Each Index __________________________________________________________*/
@@ -176,11 +176,23 @@ foreach dv of global em {
 			global se	 	= table[2,1]		//se
 			global t  	 	= table[3,1]		//t
 			
-			if strpos("`treat'", "treat_courtvsag") {
+			if strpos("`treat'", "treat_courtag") {
 					global pval = 2*ttail(e(df_r),abs(${t}))
 					global test twotailed
-				}
-				else {
+			}
+				
+			if strpos("`treat'", "treat_courtvsag") {
+					if table[1,1] < 0 {
+						global pval = ttail(e(df_r),abs(${t})) 
+						global test onesided
+					}
+						else if table[1,1] > 0 {
+							global pval = 1-ttail(e(df_r),abs(${t}))
+							global test onesidedneg
+						}
+			}
+
+			if strpos("`treat'", "treat_courtonly") {
 					if table[1,1] > 0 {
 						global pval = ttail(e(df_r),abs(${t})) 
 						global test onesided
@@ -189,8 +201,8 @@ foreach dv of global em {
 							global pval = 1-ttail(e(df_r),abs(${t}))
 							global test onesidedneg
 						}
-				}
-							
+			}
+						
 			global r2 	= `e(r2_a)' 		//r-squared
 			global N 	= e(N) 				//N
 
@@ -226,20 +238,32 @@ foreach dv of global em {
 			global lasso_se   = table[2,1]		//se
 			global lasso_t    = table[3,1]		//t
 
-			if strpos("`test'", "treat_courtag") {
-					global lasso_pval 	= 2*ttail(e(df_r),abs(${t}))
+			if strpos("`treat'", "treat_courtag") {
+					global lasso_pval = 2*ttail(e(df_r),abs(${lasso_t}))
 					global test twotailed
-				}
-				else {
+			}
+				
+			if strpos("`treat'", "treat_courtvsag") {
+					if table[1,1] < 0 {
+						global lasso_pval = ttail(e(df_r),abs(${lasso_t})) 
+						global test onesided
+					}
+						else if table[1,1] > 0 {
+							global lasso_pval = 1-ttail(e(df_r),abs(${lasso_t}))
+							global test onesidedneg
+						}
+			}
+
+			if strpos("`treat'", "treat_courtonly") {
 					if table[1,1] > 0 {
-						global lasso_pval = ttail(e(df_r),abs(${t})) 
+						global lasso_pval = ttail(e(df_r),abs(${lasso_t})) 
 						global test onesided
 					}
 						else if table[1,1] < 0 {
-							global lasso_pval = 1-ttail(e(df_r),abs(${t}))
+							global lasso_pval = 1-ttail(e(df_r),abs(${lasso_t}))
 							global test onesidedneg
 						}
-				}
+			}
 		
 			global lasso_r2 				= `e(r2_a)' 		//r-squared
 			global lasso_N 					= e(N) 				//N

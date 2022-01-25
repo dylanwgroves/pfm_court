@@ -50,8 +50,8 @@ ________________________________________________________________________________
 	texdoc do "${code}/pfm_court/pfm_court_tables_appendix_variables.texdoc"
 
 
-	
-	texdoc do "${code}/pfm_court/pfm_court_tables_attitudes_apcg.texdoc"
+	texdoc do "${code}/pfm_court/pfm_court_tables_means.texdoc"
+	texdoc do "${code}/pfm_court/pfm_court_tables_attitudesnorms_apcg.texdoc"
 	texdoc do "${code}/pfm_court/pfm_court_tables_norms_apcg.texdoc"
 	texdoc do "${code}/pfm_court/pfm_court_tables_courtsvsag_apcg.texdoc"
 

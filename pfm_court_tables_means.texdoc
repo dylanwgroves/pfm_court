@@ -25,9 +25,9 @@ ________________________________________________________________________________
 
 /* Load Data ___________________________________________________________________*/	
 
-	import excel "${court_tables}/pfm_court_analysis_new.xlsx", firstrow clear
+	import excel "${court_tables}/pfm_court_analysis_each.xlsx", firstrow clear
 	save `dta_main', replace
-
+stop
 /* Sort Data ___________________________________________________________________*/
 
 	/* Individual Data */

@@ -85,7 +85,7 @@ ________________________________________________________________________________
 /* Any Labelling Changes _______________________________________________________*/
 
 	tostring variablelabel, replace
-	replace variablelabel = "Reject all EM" if variable == "em_reject_all"
+	replace variablelabel = "Reject All EM" if variable == "em_reject_all"
 	replace variablelabel = "Reject EM Index" if variable == "em_reject_index"
 	replace variablelabel = "General" if variable == "em_reject"
 	replace variablelabel = "If Needs Money" if variable == "em_reject_money_dum"
