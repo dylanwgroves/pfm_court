@@ -42,7 +42,14 @@ ________________________________________________________________________________
 	
 	texdoc do "${code}/pfm_court/pfm_court_tables_means.texdoc"
 	
-	texdoc do "${code}/pfm_court/pfm_court_tables_attitudesnorms_each.texdoc"
+	texdoc do "${code}/pfm_court/pfm_court_tables_courtonly_attitudesreporting_apcg.texdoc"
+	texdoc do "${code}/pfm_court/pfm_court_tables_courtonly_norms_apcg.texdoc"
+	
+	
+
+	stop
+	
+	
 	texdoc do "${code}/pfm_court/pfm_court_tables_reporting_each.texdoc"
 	texdoc do "${code}/pfm_court/pfm_court_tables_speakout_each.texdoc"
 	

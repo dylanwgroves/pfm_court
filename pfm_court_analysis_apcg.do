@@ -15,7 +15,7 @@ ________________________________________________________________________________
 	set more off
 	global c_date = c(current_date)
 
-	
+
 /* Run Prelim File _____________________________________________________________*/ // comment out if you dont need to rerun prelim cleaning	
 
 	*do "${code}/pfm_.master/00_setup/pfm_paths_master.do"
@@ -32,19 +32,20 @@ ________________________________________________________________________________
 		#d ;
 			
 			/* Rerandomization count */
-			local rerandcount	200
+			global rerandcount	2
 								;
-				
-				
+					
 			/* Set seed */
 			set seed 			1956
 								;
 								
 			/* Treatments */
-			global treats		treat_courtonly 
-								treat_courtag
-								treat_courtvsag
+			global treats		courtonly 
+								courtag
+								courtvsag
 								;
+								/*
+								*/
 			
 			/* Outcomes */
 			global em 						
@@ -59,19 +60,18 @@ ________________________________________________________________________________
 								em_record_shareany
 								em_record_shareptix
 								em_record_sharepfm
+								reason_courts
 								;
 								/*
 
 								*/	
 			
 			/* Covariates */	
-			global cov_always	svy_partner 
-								i.treat_pi
+			global cov_always	i.treat_pi
 								;		
 			
 			/* Lasso Covariates */
 			global cov_lasso	fm_reject
-								fm_reject_long
 								resp_female
 								resp_muslim
 								resp_age
@@ -81,16 +81,27 @@ ________________________________________________________________________________
 			
 		#d cr
 
-	*drop if startdate < mdy(12, 11, 2020)
+	*drop if startdate < mdy(10, 12, 2020)
 		
 	/* Move this to prelim */ 
 	*replace treat_courtag = 0 if treat_courtonly == 1
 	*replace treat_courtonly = 0 if treat_courtag == 1
 	gen treat_courtvsag = 0 if treat_courtonly == 1
 		replace treat_courtvsag = 1 if treat_courtag == 1
+		
+		
+	foreach var of varlist fm_reject resp_female resp_muslim resp_age {
+	
+		egen std_`var' = std(`var')
+		replace `var' = std_`var'
+		drop std_`var'
+	
+	}
 
 		
 foreach treat of global treats {
+
+	global treat treat_`treat'
 
 /* Run for Each Index __________________________________________________________*/
 
@@ -98,15 +109,15 @@ foreach treat of global treats {
 				
 		/* Set Put Excel File Name */
 		putexcel clear
-		putexcel set "${court_tables}/pfm_court_analysis_apcg.xlsx", sheet(`treat', replace) modify
+		putexcel set "${court_tables}/pfm_court_analysis_apcg_test.xlsx", sheet(`treat', replace) modify
 		
 		qui putexcel A1 = ("variable")
 		qui putexcel B1 = ("variablelabel")
 		
-		qui putexcel C1 = ("coef_courtonly")
-		qui putexcel D1 = ("se_courtonly")
-		qui putexcel E1 = ("pval_courtonly")
-		qui putexcel F1 = ("ripval_courtonly")
+		qui putexcel C1 = ("coef_`treat'")
+		qui putexcel D1 = ("se_`treat'")
+		qui putexcel E1 = ("pval_`treat'")
+		qui putexcel F1 = ("ripval_`treat'")
 		qui putexcel G1 = ("r2")
 		qui putexcel H1 = ("N")
 		
@@ -134,20 +145,26 @@ foreach treat of global treats {
 local row = 2	
 
 
-
 foreach dv of global em {		
 	
 /* Standard Regression _________________________________________________________*/
-
+		
+		* Set DV
+		global dv `dv'
+		
 		qui ds `dv'
 			global varname = "`r(varlist)'"  
 			
+		
+		/* Set IPW */
+		global ipw ipw_`treat'
+		
 		/* Outcome label 
 		global varlabel : var label `dv'
 		*/
 		
 		/* Control mean */
-		qui sum `dv' if `treat' == 0
+		qui sum `dv' if $treat == 0
 			global ctl_mean `r(mean)'
 			global ctl_sd `r(sd)'
 			
@@ -158,53 +175,45 @@ foreach dv of global em {
 		
 		/* Control village sd */
 		preserve
-		qui collapse (mean) `dv' `treat', by(village)
+		qui collapse (mean) $dv $treat, by(village)
 		qui sum `dv'
 			global vill_sd : di %6.3f `r(sd)'
 		restore
 
 		/* Run basic regression */
-		qui sum `dv' if `treat' == 1
+		qui sum $dv if $treat == 1
 			global treat_mean_`treat' `r(mean)'
 			global treat_sd_`treat' `r(sd)'
 		
-		qui reg `dv' `treat' ${cov_always}					     			// This is the core regression
+		reg $dv $treat ${cov_always} [pweight=ipw]					     				// This is the core regression
+		
 			matrix table = r(table)
 			
 			/* Save values from regression */
 			global coef 	= table[1,1]    	//beta
 			global se	 	= table[2,1]		//se
 			global t  	 	= table[3,1]		//t
+			global r2 		= `e(r2_a)' 		//r-squared
+			global N 		= e(N) 				//N
 			
-			if strpos("`treat'", "treat_courtag") {
-					global pval = 2*ttail(e(df_r),abs(${t}))
-					global test twotailed
+			/* Set the test */
+			if strpos("$treat", "treat_courtag") {
+					global test twosided
 			}
 				
-			if strpos("`treat'", "treat_courtvsag") {
-					if table[1,1] < 0 {
-						global pval = ttail(e(df_r),abs(${t})) 
-						global test onesided
-					}
-						else if table[1,1] > 0 {
-							global pval = 1-ttail(e(df_r),abs(${t}))
-							global test onesidedneg
-						}
+			if strpos("$treat", "treat_courtvsag") {
+						global test onesidedneg
 			}
 
-			if strpos("`treat'", "treat_courtonly") {
-					if table[1,1] > 0 {
-						global pval = ttail(e(df_r),abs(${t})) 
+			if strpos("$treat", "treat_courtonly") {
 						global test onesided
-					}
-						else if table[1,1] < 0 {
-							global pval = 1-ttail(e(df_r),abs(${t}))
-							global test onesidedneg
-						}
 			}
-						
-			global r2 	= `e(r2_a)' 		//r-squared
-			global N 	= e(N) 				//N
+			
+			do "${code}/pfm_court/01_helpers/pfm_helper_pval.do"
+			global pval = ${helper_pval}
+			
+			do "${code}/pfm_court/01_helpers/pfm_helper_pval_ri.do"
+			global ripval = ${helper_ripval}
 
 
 /* Run lasso regression ________________________________________________________*/	
@@ -223,63 +232,43 @@ foreach dv of global em {
 		
 			/* If lasso selected covariates for both */
 			if ${lasso_ctls_num} != 0  {
-				qui reg `dv' `treat' ${lasso_ctls} ${cov_always}    
+				reg $dv $treat ${lasso_ctls} ${cov_always} [pweight=ipw]  
 				matrix table = r(table)
 			}
 			
 			/* If lasso selected no covariates */
 			if ${lasso_ctls_num} == 0 {		
-				qui reg `dv' `treat' ${cov_always}
+				reg $dv $treat ${cov_always} [pweight=ipw]
 				matrix table = r(table)
 			}
 			
 			/* Save values from regression */
-			global lasso_coef = table[1,1]    		//beta
+			global lasso_coef = table[1,1]    	//beta
 			global lasso_se   = table[2,1]		//se
 			global lasso_t    = table[3,1]		//t
-
-			if strpos("`treat'", "treat_courtag") {
-					global lasso_pval = 2*ttail(e(df_r),abs(${lasso_t}))
-					global test twotailed
+			global lasso_r2   = `e(r2_a)' 		//r-squared
+			global lasso_N 	  = e(N) 			//N
+			
+			/* Set the test */
+			if strpos("$treat", "treat_courtag") {
+					global test twosided
 			}
 				
-			if strpos("`treat'", "treat_courtvsag") {
-					if table[1,1] < 0 {
-						global lasso_pval = ttail(e(df_r),abs(${lasso_t})) 
-						global test onesided
-					}
-						else if table[1,1] > 0 {
-							global lasso_pval = 1-ttail(e(df_r),abs(${lasso_t}))
-							global test onesidedneg
-						}
+			if strpos("$treat", "treat_courtvsag") {
+						global test onesidedneg
 			}
 
-			if strpos("`treat'", "treat_courtonly") {
-					if table[1,1] > 0 {
-						global lasso_pval = ttail(e(df_r),abs(${lasso_t})) 
+			if strpos("$treat", "treat_courtonly") {
 						global test onesided
-					}
-						else if table[1,1] < 0 {
-							global lasso_pval = 1-ttail(e(df_r),abs(${lasso_t}))
-							global test onesidedneg
-						}
 			}
-		
-			global lasso_r2 				= `e(r2_a)' 		//r-squared
-			global lasso_N 					= e(N) 				//N
+					
 
-		
-		/* One-sided p-value for predicted effects 				//THIS NEEDS TO BE ADJUSTED ACCORDING TO HYPOTHESIS
-		if table[1,1] > 0 {
-			global lasso_pval = ttail(e(df_r),abs(${lasso_t}))
-			global help "One-tailed"
-		}
-		else if table[1,1] < 0 {
-			global lasso_pval = 1-ttail(e(df_r),abs(${lasso_t}))
-			global help "Two-tailed"
-		}
-		*/	
-		
+			do "${code}/pfm_court/01_helpers/pfm_helper_pval_lasso.do"
+			global lasso_pval = ${helper_lasso_pval}
+			
+			do "${code}/pfm_court/01_helpers/pfm_helper_pval_ri_lasso.do"
+			global lasso_ripval = ${helper_lasso_ripval}
+
 		
 /* Export to Excel _____________________________________________________________*/ 
 

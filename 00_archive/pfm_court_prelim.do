@@ -52,67 +52,23 @@ ________________________________________________________________________________
 	replace id_resp_uid = id_friend_uid if id_resp_uid == ""
 
 	save `temp_all', replace
+
+	
 	
 	
 /* Merge Transcript ____________________________________________________________*/
 
+	import excel "${data}\02_mid_data\em_records\uliza_dylan_groves_partner_transcripts_20220301.xlsx", sheet("uliza_dylan_groves_partner_tran") firstrow clear
+	replace courts = 0 if courts == .
+	keep uid courts
+	rename uid id_resp_uid
 	
-	/* Friends Survey */
-	import excel "${data}\02_mid_data\em_records\uliza_dylan_groves_friend.xlsx", sheet("uliza_dylan_groves_friend_trans") firstrow clear
-	destring TalksAboutLawCourt, replace
-	replace TalksAboutLawCourt = 0 if TalksAboutLawCourt == .
-	rename TalksAboutLawCourt reason_courts
-	rename TalksAboutWhatisRightWrong reason_morals
-	rename Talksabouthealthofgirl reason_health 
-	rename Talksaboutreligion reason_religion
-	rename veSocialPerspective reason_society
-	rename mentalmaturity reason_maturity
-	rename Talkofschooleducation reason_education
-	rename Didntgivereasonbutsuggested reason_none
+	merge 1:1 id_resp_uid using `temp_all', gen(merge_courtcount)
 	
-	foreach type in courts morals health religion society maturity education none {
-			destring reason_`type', replace
-			replace reason_`type' = 0 if reason_`type' == .
-	}
-	
-	keep uid reason_courts reason_morals reason_health reason_health reason_religion  reason_society reason_maturity reason_education reason_none
-	gen id_resp_uid = uid + "_F"
-
-	merge 1:1 id_resp_uid using `temp_all', gen(merge_courtcountfriend)
-
-	foreach type in courts morals health religion society maturity education none {
-		replace reason_`type' = 0 if svy_friend == 1 & reason_`type' == .
-	}
-
-	save `temp_all', replace
-	
-	
-	/* Parnter Survey */
-	import excel "${data}\02_mid_data\em_records\uliza_dylan_groves_partner.xlsx", sheet("uliza_dylan_groves_partner_tran") firstrow clear
-
-	rename TalksAboutLawCourt reason_courts
-	rename TalksAboutWhatisRightWrong reason_morals
-	rename Talksabouthealthofgirl reason_health 
-	rename Talksaboutreligion reason_religion
-	rename veSocialPerspective reason_society
-	rename mentalmaturity reason_maturity
-	rename Talkofschooleducation reason_education
-	rename Didntgivereasonbutsuggested reason_none
-	
-	foreach type in courts morals health religion society maturity education none {
-			destring reason_`type', replace
-			replace reason_`type' = 0 if reason_`type' == .
-	}
-	
-	keep uid reason_courts reason_morals reason_health reason_health reason_religion  reason_society reason_maturity reason_education reason_none
-	gen id_resp_uid = uid
-	
-	merge 1:1 id_resp_uid using `temp_all', gen(merge_courtcountpartner)
-
-	foreach type in courts morals health religion society maturity education none {
-		replace reason_`type' = 0 if svy_partner == 1 & reason_`type' == .
-	}
-	
+	replace courts = 0 if courts == .
+		replace courts = . if svy_friend == 1
+		
+stop
 
 /* Generate any necessary variables ____________________________________________*/
 
@@ -125,9 +81,6 @@ ________________________________________________________________________________
 	/* Outcomes */
 	drop em_reject_index
 	gen em_reject_index = (em_reject + em_reject_religion_dum + em_reject_money_dum)/3
-	drop em_reject_all
-	egen em_reject_all = rowmin(em_reject em_reject_money_dum em_reject_religion_dum)
-
 	
 	drop em_reject_all
 	
