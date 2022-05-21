@@ -25,14 +25,14 @@ ________________________________________________________________________________
 	/* Load Data ___________________________________________________________________*/	
 
 		use "${data_court}/pfm_court_analysis.dta", clear
-		egen em_reject_all = rowmin(em_reject em_reject_money_dum em_reject_religion_dum)
+		//egen em_reject_all = rowmin(em_reject em_reject_money_dum em_reject_religion_dum)
 
 
 	/* Define Globals and Locals ___________________________________________________*/
 		#d ;
 			
 			/* Rerandomization count */
-			global rerandcount	2
+			global rerandcount	20
 								;
 					
 			/* Set seed */
@@ -40,11 +40,13 @@ ________________________________________________________________________________
 								;
 								
 			/* Treatments */
-			global treats		courtonly 
-								courtag
-								courtvsag
+			global treats		
+								courtonly
 								;
 								/*
+								courtonly
+								courtag
+								courtvsag
 								*/
 			
 			/* Outcomes */
@@ -52,7 +54,7 @@ ________________________________________________________________________________
 								em_reject_all
 								em_reject_index
 								em_reject
-								em_reject_money_dum 
+								em_reject_money_dum
 								em_reject_religion_dum
 								em_report
 								em_norm_reject_dum
@@ -109,7 +111,7 @@ foreach treat of global treats {
 				
 		/* Set Put Excel File Name */
 		putexcel clear
-		putexcel set "${court_tables}/pfm_court_analysis_apcg_test.xlsx", sheet(`treat', replace) modify
+		putexcel set "${court_tables}/pfm_court_analysis_bjps.xlsx", sheet(`treat', replace) modify
 		
 		qui putexcel A1 = ("variable")
 		qui putexcel B1 = ("variablelabel")
@@ -182,10 +184,10 @@ foreach dv of global em {
 
 		/* Run basic regression */
 		qui sum $dv if $treat == 1
-			global treat_mean_`treat' `r(mean)'
-			global treat_sd_`treat' `r(sd)'
+			global treat_mean `r(mean)'
+			global treat_sd `r(sd)'
 		
-		reg $dv $treat ${cov_always} [pweight=ipw]					     				// This is the core regression
+		reg $dv $treat ${cov_always} [pweight=ipw], robust					     				// This is the core regression
 		
 			matrix table = r(table)
 			
@@ -232,7 +234,7 @@ foreach dv of global em {
 		
 			/* If lasso selected covariates for both */
 			if ${lasso_ctls_num} != 0  {
-				reg $dv $treat ${lasso_ctls} ${cov_always} [pweight=ipw]  
+				reg $dv $treat ${lasso_ctls} ${cov_always} [pweight=ipw], robust 
 				matrix table = r(table)
 			}
 			

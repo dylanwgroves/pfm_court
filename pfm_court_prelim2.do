@@ -149,6 +149,7 @@ ________________________________________________________________________________
 			replace ipw = 4 if svy_partner == 0 & treat == 0
 			replace ipw = 3	if svy_partner == 0 & (treat == 1 | treat == 2)
 			
+	
 
 /* For Randomization Inference _________________________________________________*/
 	

@@ -6,11 +6,11 @@ if "$test" == "onesided" {
 	local rip_count = 0
 	forval j = 1 / $rerandcount {
 	
-		qui xi: reg $dv ${treat}_`j' ${cov_always} [pweight=${ipw}_`j']
+		qui reg $dv ${treat}_`j' ${cov_always} [pweight=${ipw}_`j']
 			matrix RIP = r(table)
 			local coef_ri = RIP[1,1]
 			if ${coef} < `coef_ri' { 	  
-					local rip_count = `rip_count' + 1	
+				local rip_count = `rip_count' + 1	
 			}
 	}	
 }
@@ -18,15 +18,15 @@ if "$test" == "onesided" {
 
 if "$test" == "onesidedneg" {
 
-	/* one sided */
+	/* one sided negative */
 	local rip_count = 0
 	forval j = 1 / $rerandcount {
 	
-		qui xi: reg $dv ${treat}_`j' ${cov_always} [pweight=${ipw}_`j']
+		qui reg $dv ${treat}_`j' ${cov_always} [pweight=${ipw}_`j']
 			matrix RIP = r(table)
 			local coef_ri = RIP[1,1]
 			if ${coef} > `coef_ri' { 	  
-					local rip_count = `rip_count' + 1	
+				local rip_count = `rip_count' + 1	
 			}
 	}	
 }
@@ -38,7 +38,7 @@ if "$test" == "twosided" {
 	local rip_count = 0
 	forval j = 1 / $rerandcount {
 	
-		qui xi: reg $dv ${treat}_`j' ${cov_always} [pweight=${ipw}_`j']
+		qui reg $dv ${treat}_`j' ${cov_always} [pweight=${ipw}_`j']
 			matrix RIP = r(table)
 			local coef_ri = RIP[1,1]
 			
