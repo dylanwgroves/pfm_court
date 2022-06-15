@@ -25,7 +25,7 @@ ________________________________________________________________________________
 
 /* Load Data ___________________________________________________________________*/	
 
-	import excel "${court_tables}/pfm_court_analysis_apcg_test.xlsx", sheet(courtonly) firstrow clear
+	import excel "${court_tables}/pfm_court_analysis_apcg_test.xlsx", sheet(courtvsag) firstrow clear
 	save `dta_main', replace
 
 	*rename coef_all coef_courtonly
@@ -35,16 +35,16 @@ ________________________________________________________________________________
 /* Sort Data ___________________________________________________________________*/
 
 	/* Individual Data */
-	sort 	coef_courtonly se_courtonly pval_courtonly ///
+	sort 	coef_courtvsag se_courtvsag pval_courtvsag ///
 			r2 N ///
-			lasso_coef_courtonly lasso_se_courtonly lasso_pval_courtonly ///
+			lasso_coef_courtvsag lasso_se_courtvsag lasso_pval_courtvsag ///
 			lasso_r2 lasso_N lasso_ctls_num ///
 			ctl_mean vill_sd min max 
 			
 	destring 	variable variablelabel ///
-				coef_courtonly se_courtonly pval_courtonly ///
+				coef_courtvsag se_courtvsag pval_courtvsag ///
 				r2 N ///
-				lasso_coef_courtonly lasso_se_courtonly lasso_pval_courtonly ///
+				lasso_coef_courtvsag lasso_se_courtvsag lasso_pval_courtvsag ///
 				lasso_r2 lasso_N lasso_ctls lasso_ctls_num ///
 				treat_mean treat_sd ctl_mean ctl_sd vill_sd min max, replace
 				
@@ -58,10 +58,12 @@ ________________________________________________________________________________
 	local sumstat_vars 	
 						em_reject_index
 						em_reject_all
-						em_reject
-						em_reject_religion_dum
-						em_reject_money_dum 
 						em_report
+						em_norm_reject_dum
+						em_report_norm
+						em_record_sharepfm
+						em_record_shareptix
+						reason_courts
 						;
 	#d cr 
 						
@@ -88,11 +90,15 @@ ________________________________________________________________________________
 	replace variablelabel = "If Needs Money" if variable == "em_reject_money_dum"
 	replace variablelabel = "If Religion Permits" if variable == "em_reject_religion_dum"
 	replace variablelabel = "Report EM" if variable == "em_report"
-	replace variablelabel = "Comm. Rejects EM" if variable == "em_norm_reject_dum"
-	replace variablelabel = "Comm. Report EM" if variable == "em_report_norm"
+	replace variablelabel = "Reject EM" if variable == "em_norm_reject_dum"
+	replace variablelabel = "Report EM" if variable == "em_report_norm"
 	replace variablelabel = "Speak Out" if variable == "em_record_shareany"
 	replace variablelabel = "Would Report" if variable == "em_report"	
-
+	replace variablelabel = "Radio Station" if variable == "em_record_sharepfm"
+	replace variablelabel = "Ptix Leader" if variable == "em_record_shareptix"
+	replace variablelabel = "Court/Law" if variable == "reason_courts"
+	
+	
 /* Create variables ____________________________________________________________*/
 
 	count
@@ -106,9 +112,9 @@ ________________________________________________________________________________
 		global var`i' = variablelabel[`i']
 		
 		/* Normal */
-		global b`i' = strofreal(coef_courtonly[`i'], "%6.3f")
-		global se`i' = strofreal(se_courtonly[`i'], "%6.3f")
-		global p`i' = strofreal(pval_courtonly[`i'], "%6.3f")
+		global b`i' = strofreal(coef_courtvsag[`i'], "%6.3f")
+		global se`i' = strofreal(se_courtvsag[`i'], "%6.3f")
+		global p`i' = strofreal(pval_courtvsag[`i'], "%6.3f")
 		
 		/*
 		global b`i'x = strofreal(coef_courtag[`i'], "%6.3f")
@@ -121,9 +127,9 @@ ________________________________________________________________________________
 		global ctl`i' = "No"
 		
 		/* Lasso */
-		global b`i'c = strofreal(lasso_coef_courtonly[`i'], "%6.3f")
-		global se`i'c = strofreal(lasso_se_courtonly[`i'], "%6.3f")
-		global p`i'c = strofreal(lasso_pval_courtonly[`i'], "%6.3f")
+		global b`i'c = strofreal(lasso_coef_courtvsag[`i'], "%6.3f")
+		global se`i'c = strofreal(lasso_se_courtvsag[`i'], "%6.3f")
+		global p`i'c = strofreal(lasso_pval_courtvsag[`i'], "%6.3f")
 		
 		/*
 		global b`i'xc = strofreal(lasso_coef_courtag[`i'], "%6.3f")
@@ -151,30 +157,30 @@ ________________________________________________________________________________
 	
 /* Make Table __________________________________________________________________*/
 
-texdoc init "${court_clean_tables}/pfm_court_tables_courtonly_attitudesreporting_apcg.tex", replace nolog
+texdoc init "${court_clean_tables}/pfm_court_tables_courtvsag_all_apcg.tex", replace nolog
 
 texdoc write 	{
 texdoc write 	\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
-texdoc write 	\begin{tabular}{l*{13}{c}}
+texdoc write 	\begin{tabular}{l*{15}{c}}
 texdoc write 	\Xhline{2\arrayrulewidth}\addlinespace[3pt]	
 
-texdoc write    &\multicolumn{4}{c}{\textit{Attitude Indices}}  &\multicolumn{6}{c}{\textit{Attitude Components}} &\multicolumn{2}{c}{\textit{Reporting}} \tstrut \bstrut \\ \cmidrule(r){2-5} \cmidrule(r){6-11} \cmidrule(r){12-13}
+texdoc write    &\multicolumn{4}{c}{\textit{Attitudes}}  &\multicolumn{2}{c}{\textit{Reporting}} &\multicolumn{4}{c}{\textit{Perceived Norms About...}} &\multicolumn{4}{c}{\textit{Share Message With}} \tstrut \bstrut \\ \cmidrule(r){2-5} \cmidrule(r){6-7} \cmidrule(r){8-11} \cmidrule(r){12-15}
 
-texdoc write    &\multicolumn{2}{c}{$var1} &\multicolumn{2}{c}{$var2} &\multicolumn{2}{c}{$var3}  	&\multicolumn{2}{c}{$var4} &\multicolumn{2}{c}{$var5}  &\multicolumn{2}{c}{$var6}	\tstrut \bstrut \\ \cmidrule(r){2-3} \cmidrule(r){4-5} \cmidrule(r){6-7} \cmidrule(r){8-9} \cmidrule(r){10-11} \cmidrule(r){12-13} 
+texdoc write    &\multicolumn{2}{c}{$var1} &\multicolumn{2}{c}{$var2} &\multicolumn{2}{c}{$var3}  	&\multicolumn{2}{c}{$var4} &\multicolumn{2}{c}{$var5} &\multicolumn{2}{c}{$var6} &\multicolumn{2}{c}{$var7} 	\tstrut \bstrut \\ \cmidrule(r){2-3} \cmidrule(r){4-5} \cmidrule(r){6-7} \cmidrule(r){8-9} \cmidrule(r){10-11} \cmidrule(r){12-13} \cmidrule(r){14-15} 
 
-texdoc write    							& (1)				& (2)				& (3)			& (4)			& (5)				& (6)				& (7)			& (8)				& (9)			& (10)				& (11)			& (12)								\\
+texdoc write    							& (1)				& (2)				& (3)			& (4)			& (5)				& (6)				& (7)			& (8)				& (9)			& (10)				& (11)			& (12)				& (13)			& (14)										\\
 
-texdoc write 	Court Rejects EM			& $b1\sym{$s1}  	& $b1c\sym{$s1c} 	& $b2\sym{$s2} 	& $b2c\sym{$s2c} & $b3\sym{$s3} 	& $b3c\sym{$s3c}	& $b4\sym{$s4}	& $b4c\sym{$s4c} 	& $b5\sym{$s5}	& $b5c\sym{$s5c}	& $b6\sym{$s6}	& $b6c\sym{$s6c}		\\
-texdoc write    Standard Error 				& $se1				& $se1c				& $se2    		& $se2c  		& $se3 				& $se3c				& $se4 			& $se4c				& $se5			& $se5c				& $se6			& $se6c						\\
-texdoc write 	RI \$p\$-value 				& $p1				& $p1c 				& $p2			& $p2c			& $p3  				& $p3c				& $p4			& $p4c				& $p5			& $p5c				& $p6			& $p6c					\\
+texdoc write 	Court+AG vs Court			& $b1\sym{$s1}  	& $b1c\sym{$s1c} 	& $b2\sym{$s2} 	& $b2c\sym{$s2c} & $b3\sym{$s3} 	& $b3c\sym{$s3c}	& $b4\sym{$s4}	& $b4c\sym{$s4c} 	& $b5\sym{$s5}	& $b5c\sym{$s5c}	& $b6\sym{$s6}	& $b6c\sym{$s6c} 	& $b7\sym{$s7}	& $b7c\sym{$s7c}			\\
+texdoc write    Standard Error 				& $se1				& $se1c				& $se2    		& $se2c  		& $se3 				& $se3c				& $se4 			& $se4c				& $se5			& $se5c				& $se6			& $se6c				& $se7			& $se7c									\\
+texdoc write 	\$p\$-value 				& $p1				& $p1c 				& $p2			& $p2c			& $p3  				& $p3c				& $p4			& $p4c				& $p5			& $p5c				& $p6			& $p6c				& $p7			& $p7c							\\
 texdoc write 	\hline \noalign{\vskip 0.1cm} 
-texdoc write 	Hypothesis					& +					& + 				& +				& + 			& +					& +					& +				& +					& +				& +					& +				& +						\\
-texdoc write 	Control Mean      			& $c1				& $c1				& $c2			& $c2			& $c3  				& $c3				& $c4			& $c4				& $c5			& $c5				& $c6			& $c6					\\
-texdoc write 	Control SD 					& $sd1				& $sd1				& $sd2			& $sd2			& $sd3 				& $sd3				& $sd4			& $sd4				& $sd5			& $sd5				& $sd6			& $sd6				\\
-texdoc write	DV Range					& [$mn1-$mx1]		& [$mn1-$mx1]		& [$mn2-$mx2]	& [$mn2-$mx2]	& [$mn3-$mx3] 		& [$mn3-$mx3]		& [$mn4-$mx4]	& [$mn4-$mx4]		& [$mn5-$mx5] 	& [$mn5-$mx5]		& [$mn6-$mx6] 	& [$mn6-$mx6]			\\	
-texdoc write 	Controls 					& $ctl1 			& $ctl1c 			&  $ctl2   		& $ctl2c  		& $ctl3				& $ctl3c 			& $ctl4			& $ctl4c			& $ctl5			& $ctl5c			& $ctl6			& $ctl6c					\\
-texdoc write 	Adj-\$ R^2\$				& $r1 				& $r1c 				& $r2   		& $r2c 			& $r3				& $r3c				& $r4			& $r4c				& $r5			& $r5c	 			& $r6			& $r6c					\\
-texdoc write 	Observations      			& $n1 				& $n1c 				& $n2   		& $n2c 			& $n3				& $n3c				& $n4			& $n4c				& $n5			& $n5c  			& $n6			& $n6c 				\\
+texdoc write 	Hypothesis					& Neg.				& Neg. 				& Neg.			& Neg. 			& Neg.				& Neg.				& Neg.			& Neg.				& Neg.			& Neg.				& Neg.			& Neg.				& Neg.			& Neg.								\\
+texdoc write 	Control Mean      			& $c1				& $c1				& $c2			& $c2			& $c3  				& $c3				& $c4			& $c4				& $c5			& $c5				& $c6			& $c6				& $c7			& $c7							\\
+texdoc write 	Control Village SD 			& $sd1				& $sd1				& $sd2			& $sd2			& $sd3 				& $sd3				& $sd4			& $sd4				& $sd5			& $sd5				& $sd6			& $sd6				& $sd7			& $sd7						\\
+texdoc write	DV Range					& [$mn1-$mx1]		& [$mn1-$mx1]		& [$mn2-$mx2]	& [$mn2-$mx2]	& [$mn3-$mx3] 		& [$mn3-$mx3]		& [$mn4-$mx4]	& [$mn4-$mx4]		& [$mn5-$mx5] 	& [$mn5-$mx5]		& [$mn6-$mx6] 	& [$mn6-$mx6]		& [$mn7-$mx7] 	& [$mn7-$mx7]			\\	
+texdoc write 	Controls 					& $ctl1 			& $ctl1c 			&  $ctl2   		& $ctl2c  		& $ctl3				& $ctl3c 			& $ctl4			& $ctl4c			& $ctl5			& $ctl5c			& $ctl6			& $ctl6c			& $ctl7			& $ctl7c							\\
+texdoc write 	Adj-\$ R^2\$				& $r1 				& $r1c 				& $r2   		& $r2c 			& $r3				& $r3c				& $r4			& $r4c				& $r5			& $r5c	 			& $r6			& $r6c				& $r7			& $r7c	 						\\
+texdoc write 	Observations      			& $n1 				& $n1c 				& $n2   		& $n2c 			& $n3				& $n3c				& $n4			& $n4c				& $n5			& $n5c  			& $n6			& $n6c 				& $n7			& $n7c  					\\
 texdoc write 	\Xhline{2\arrayrulewidth}
 texdoc write 	\end{tabular}
 texdoc write 	}

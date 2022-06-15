@@ -1,0 +1,323 @@
+/* _____________________________________________________________________________
+
+	Project: Wellspring Tanzania
+	Author: Beatrice Montano, bm2955@columbia.edu
+
+	Date: 2022/06/08
+________________________________________________________________________________*/
+
+
+/* Introduction ________________________________________________________________*/
+	
+	clear all	
+	clear matrix
+	clear mata
+	set more off
+
+	tempfile dta_ne 
+	tempfile dta_africa 
+	tempfile dta_tz
+	tempfile ne 
+	tempfile africa 
+	tempfile tz 
+/* _____________________________________________________________________________
+																			
+   Choose Information: social attitudes + media technology and consumption + education / assets
+______________________________________________________________________________*/	
+
+/* Variables from our sample ___________________________________________________*/	
+
+	use "${data_court}/pfm_court_analysis.dta", clear
+	save `dta_ne', replace
+	
+	recode b_values_property (0 = 1)(1 = 0), gen(compare_ge_land)				// only asked at baseline
+	rename ge_work	compare_ge_work												// only asked at endline to a random subset
+			replace compare_ge_work = . if treat==1
+	rename b_ipv_rej_disobey compare_ge_ipv										// asked at baseline and at endline 
+	rename b_ge_leadership	compare_ge_leadership								// asked at baseline and at endline to a random subset 
+    recode values_tzovertribe (1 2 3= 1)(4 5 = 0), gen(compare_nationalism)	// asked at endline
+			replace compare_nationalism = . if treat==1
+	rename prej_yesneighbor_homo compare_prej_homo								// asked at endline
+			replace compare_prej_homo = . if treat==1
+			
+	recode b_ptixpart_contactgov (1 = 1)(2 3 = 0), gen(compare_ppart_contact)	// asked at baseline and differently at endline (ptixpart_activ_talknatlgov)
+	recode b_ptixpart_collact (1 = 1)(2 3 = 0), gen(compare_ppart_collact)		// asked at baseline and at endline
+	rename ppart_a_votenatl	compare_ppart_vote									// only asked at endline
+			replace compare_ppart_vote = . if treat==1
+	
+	rename b_radio_any compare_assradio											// asked at baseline and at endline
+	rename b_radio_news_dum compare_listradio									// asked at baseline and at endline
+	rename b_asset_tv compare_asstv												// asked at baseline and at endline
+	rename b_asset_cellinternet compare_asscellint								// asked at baseline and at endline
+	
+	recode b_resp_education (0 1 2 3 4 5 6 7 = 0)(8 9 10 11 12 13 14 15 16 17 18 19 20 22 = 1), gen(compare_edu)	// only asked at baseline
+
+	recode b_asset_water (1 2 3 4 5 = 1)(6 7 8 9 = 0), gen(compare_water)		// only asked at baseline
+		replace compare_water = . if treat == 1
+	rename v_electricity compare_electricity
+			replace compare_electricity = . if treat==1
+
+	save `dta_court', replace
+
+/* Variables from Rural Africa  ________________________________________________*/	
+
+	use "${data_court}/Afrobarometer/2019/r7_merged_data_34ctry.dta", clear	
+	save `dta_africa', replace
+
+	count 									//  45,823
+	keep if URBRUR_COND == 1 				//  20,515
+	
+	recode Q38E (1 2 3 = 0)(4 5 = 1) (8 9 = .), gen(compare_ge_land)
+	recode Q38D (1 2 3 = 1)(4 5 = 0) (8 9 = .), gen(compare_ge_work)
+	recode Q78B (1 = 1)(2 3 = 0)(-1 8 9 = .) , gen(compare_ge_ipv)
+	recode Q16 (1 2 = 0)(3 4 5 = 1) (8 9 = .), gen(compare_ge_leadership)
+	recode Q85B (-1 7 8 9 99 = .)(1 2 = 0)(3 4 5 = 1), gen(compare_nationalism)
+	recode Q87C (1 2 = 0)(3 4 5 = 1) (-1 8 9 = .), gen(compare_prej_homo)
+	
+	recode Q25A (0 = 0)(1 2 3 = 1)(8 9 = .), gen(compare_ppart_contact)
+	recode Q21B (0 1 = 0)(2 3 4 = 1)(-1 8 9 = .), gen(compare_ppart_collact)
+	recode Q22 (1 = 1)(0 2 3 4 5 6 7 8 = 0)(98 9 = .), gen(compare_ppart_vote)
+
+	recode Q89A (2 = 1)(0 1 = 0)(-1 8 9 = .), gen(compare_assradio)
+	recode Q12A (0 = 0)(1 2 3 4 = 1)(8 9 = .), gen(compare_listradio)
+	recode Q89B (0 1 = 0)(2 = 1)(-1 8 9 = .), gen(compare_asstv)
+	recode Q90 (0 = 0)(1 = 1)(-1 7 8 9 = .), gen(compare_asscellint)
+
+	recode Q97 (-1 98 99 = .)(3 4 5 6 7 8 9 = 1)(0 1 2 = 0), gen(compare_edu)
+	recode EA_SVC_B (-1 9 = .)(0 = 0)(1 = 1), gen(compare_water)
+	recode EA_SVC_A (-1 9 = .)(0 = 0)(1 = 1), gen(compare_electricity)
+
+	save `dta_africa', replace
+
+/* Variables from Rural Tanzania  ______________________________________________*/	
+
+	use `dta_africa', clear
+	save `dta_tz', replace	
+
+	count if COUNTRY==29 & URBRUR_COND == 1  // 840
+	keep if COUNTRY==29                                          
+	
+	save `dta_tz', replace
+	
+	
+/* _____________________________________________________________________________
+																			
+   Export Information  
+______________________________________________________________________________*/
+
+#d ;
+	
+	local samples 		court        ///
+						africa    /// 
+						tz	      
+						;
+
+	local base_vars 	compare_ge_land            ///
+						compare_ge_work   		    ///
+						compare_ge_ipv			    ///
+						compare_ge_leadership	    ///
+						compare_nationalism		  	///
+						compare_prej_homo			///
+						compare_ppart_contact		///
+						compare_ppart_collact		///
+						compare_ppart_vote			///
+						compare_assradio			///
+						compare_listradio			///
+						compare_asstv				///
+						compare_asscellint			///
+						compare_edu					///
+						compare_water				///
+						compare_electricity			
+						;
+						
+#d cr
+	
+	
+	
+foreach samplecompare of local samples {
+	
+	use `dta_`samplecompare'', clear
+	
+	/* Set Put Excel File Name */
+	putexcel clear
+	putexcel set "${court_tables}/pfm_ne_afrobarometer.xlsx", sheet(`samplecompare', replace) modify
+
+	putexcel A1 = ("variable")
+	putexcel B1 = ("samplemean")
+	putexcel C1 = ("samplesd")
+	putexcel D1 = ("min")
+	putexcel E1 = ("max")
+	putexcel F1 = ("N")
+
+	/* Set locals */
+	local i = 1
+	local row = 2
+
+	/* Run and save for each variable */
+	foreach dv of local base_vars  {
+
+		/* Variable Name */
+		qui ds `dv'
+			global varname = "`r(varlist)'"  
+						
+		/* Mean */
+		qui sum `dv'
+			global sample_mean `r(mean)'
+			global sample_sd `r(sd)'
+
+		/* Variable Range */	
+		qui sum `dv' 
+			global min = r(min)
+			global max = r(max)
+			
+		/* Count */
+		qui tab `dv' 
+			global N = `r(N)'
+
+		/* Put excel */
+		putexcel A`row' = ("${varname}")
+		putexcel B`row' = ("${sample_mean}")
+		putexcel C`row' = ("${sample_sd}")
+		putexcel D`row' = ("${min}")
+		putexcel E`row' = ("${max}")
+		putexcel F`row' = ("${N}")
+			
+	/* Update locals */
+	local row = `row' + 1
+	local i = `i' + 1 
+	
+	} // closes vars within sample	
+
+	
+} // closes samples 
+
+
+/* _____________________________________________________________________________
+																			
+   Make Table 
+______________________________________________________________________________*/
+
+	clear all	
+	clear matrix
+	clear mata
+	set more off
+
+	tempfile dta_ne 
+	tempfile dta_africa 
+	tempfile dta_tz
+	tempfile ne 
+	tempfile africa 
+	tempfile tz 
+
+
+	/* Pull information ________________________________________________________*/
+
+	import excel "${court_tables}/pfm_ne_afrobarometer.xlsx", sheet("court") firstrow  clear
+	destring samplemean samplesd min max N, replace
+	gen sample = "ne"
+	save `ne', replace
+		
+	import excel "${court_tables}/pfm_ne_afrobarometer.xlsx", sheet("africa") firstrow  clear
+	destring samplemean samplesd min max N, replace
+	gen sample = "africa"
+*	append using `all'
+	save `africa', replace
+
+	import excel "${court_tables}/pfm_ne_afrobarometer.xlsx", sheet("tz") firstrow  clear
+	destring samplemean samplesd min max N, replace
+	gen sample = "tz"
+*	append using `all'
+	save `tz', replace
+	
+	/* Label variables ________________________________________________________*/
+
+foreach samplecompare of local samples {
+	
+	use ``samplecompare'', clear
+	
+	gen variablelabel = ""
+	
+	replace variablelabel = "Women have equal right to inherit land" if variable == "compare_ge_land"
+	replace variablelabel = "Women have equal right to jobs" if variable == "compare_ge_work"
+	replace variablelabel = "Never justified for men to beat wives" if variable == "compare_ge_ipv"
+	replace variablelabel = "Women are as good as men as political leaders" if variable == "compare_ge_leadership"
+	replace variablelabel = "National ID at least as strong as Tribal ID" if variable == "compare_nationalism"
+	replace variablelabel = "Would be ok with homosexuals as neighbors" if variable == "compare_prej_homo"
+	replace variablelabel = "Contacted government official in past year" if variable == "compare_ppart_contact"
+	replace variablelabel = "Joined with others to raise an issue in past year" if variable == "compare_ppart_collact"
+	replace variablelabel = "Voted in national election in past year" if variable == "compare_ppart_vote"
+	replace variablelabel = "Personally owns radio" if variable == "compare_assradio"
+	replace variablelabel = "Listens to radio for news at least once a month" if variable == "compare_listradio"
+	replace variablelabel = "Television in household" if variable == "compare_asstv"
+	replace variablelabel = "Mobile phone with internet access" if variable == "compare_asscellint"
+	replace variablelabel = "Education: Completed Primary School" if variable == "compare_edu"
+	replace variablelabel = "Running water pumped to village" if variable == "compare_water"
+	replace variablelabel = "Village connected to electrical grid" if variable == "compare_electricity"
+	
+
+	/* Create variables _______________________________________________________*/
+
+	count
+	local count = `r(N)'
+	
+	forval i = 1/`count' {
+
+		local var_`i' = variablelabel[`i']
+		local `samplecompare'_mean_`i' = strofreal(samplemean[`i'], "%6.2fc" numeric)
+		local `samplecompare'_sd_`i' = strofreal(samplesd[`i'], "%6.2fc" numeric)
+*		local min`i' = strofreal(min[`i'], "%6.0f")
+*		local max`i' = strofreal(max[`i'], "%6.0f")
+		local `samplecompare'_n_`i' = strofreal(N[`i'], "%6.0fc" numeric)
+	
+	}
+
+}	
+	
+//texdoc write 	\cmidrule(r){1} \cmidrule(r){2-3} \cmidrule(r){4-5} \cmidrule(r){6-7}
+
+	/* Make tex table __________________________________________________________*/
+
+texdoc init "${ne_clean_tables_new}/pfm_ne_tables_afrobarometer.tex", replace nolog
+
+texdoc write 	{
+texdoc write 	\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
+texdoc write 	\begin{tabular}{lcccccc}
+texdoc write 	\hline 
+texdoc write    \multicolumn{1}{c}{\text{Variable}} & \multicolumn{2}{c}{\text{Sample}} 	& \multicolumn{2}{c}{\text{Afrobarometer - Rural}} & \multicolumn{2}{c}{\text{Afrobarometer - TZ Rural}} \tstrut \bstrut  \\ 
+texdoc write 	\hline
+texdoc write 										& 	Mean			&	N				& Mean				&	N 						& Mean			&	N	\\
+texdoc write	\hline
+texdoc write 	\textbf{Demographics} \\ 
+texdoc write 	\hline
+texdoc write 	\text{`var_14'}       				&	`ne_mean_14'		&	`ne_n_14'	& `africa_mean_14'	& `africa_n_14'				& `tz_mean_14'	& `tz_n_14'			\\
+texdoc write 	\text{`var_15'}       				&	`ne_mean_15'		&	`ne_n_15'	& `africa_mean_15'	& `africa_n_15'				& `tz_mean_15'	& `tz_n_15'			\\
+texdoc write 	\text{`var_16'}       				&	`ne_mean_16'		&	`ne_n_16'	& `africa_mean_16'	& `africa_n_16'				& `tz_mean_16'	& `tz_n_16'			\\
+texdoc write 	\hline 	 
+texdoc write 	\textbf{Media} \\ 
+texdoc write 	\hline
+texdoc write 	\text{`var_10'}       				&	`ne_mean_10'		&	`ne_n_10'	& `africa_mean_10'	& `africa_n_10'				& `tz_mean_10'	& `tz_n_10'			\\
+texdoc write 	\text{`var_11'}       				&	`ne_mean_11'		&	`ne_n_11'	& `africa_mean_11'	& `africa_n_11'				& `tz_mean_11'	& `tz_n_11'			\\
+texdoc write 	\text{`var_12'}       				&	`ne_mean_12'		&	`ne_n_12'	& `africa_mean_12'	& `africa_n_12'				& `tz_mean_12'	& `tz_n_12'			\\
+texdoc write 	\text{`var_13'}       				&	`ne_mean_13'		&	`ne_n_13'	& `africa_mean_13'	& `africa_n_13'				& `tz_mean_13'	& `tz_n_13'			\\
+texdoc write 	\hline 	 
+texdoc write 	\textbf{Political Participation} \\ 
+texdoc write 	\hline
+texdoc write 	\text{`var_7'}	       				&	`ne_mean_7'		&	`ne_n_7'		& `africa_mean_7'	& `africa_n_7'				& `tz_mean_7'	& `tz_n_7'			\\
+texdoc write 	\text{`var_8'}	       				&	`ne_mean_8'		&	`ne_n_8'		& `africa_mean_8'	& `africa_n_8'				& `tz_mean_8'	& `tz_n_8'			\\
+texdoc write 	\text{`var_9'} 	      				&	`ne_mean_9'		&	`ne_n_9'		& `africa_mean_9'	& `africa_n_9'				& `tz_mean_9'	& `tz_n_9'			\\
+texdoc write	\hline
+texdoc write 	\textbf{Attitudes} \\ 
+texdoc write 	\hline
+texdoc write 	\text{`var_1'}						&	`ne_mean_1'		&	`ne_n_1'		& `africa_mean_1'	& `africa_n_1'				& `tz_mean_1'	& `tz_n_1'			\\
+texdoc write 	\text{`var_2'}       				&	`ne_mean_2'		&	`ne_n_2'		& `africa_mean_2'	& `africa_n_2'				& `tz_mean_2'	& `tz_n_2'			\\
+texdoc write 	\text{`var_3'}     					&	`ne_mean_3'		&	`ne_n_3'		& `africa_mean_3'	& `africa_n_3'				& `tz_mean_3'	& `tz_n_3'			\\
+texdoc write 	\text{`var_4'}	      				&	`ne_mean_4'		&	`ne_n_4'		& `africa_mean_4'	& `africa_n_4'				& `tz_mean_4'	& `tz_n_4'			\\
+texdoc write 	\text{`var_5'}	      				&	`ne_mean_5'		&	`ne_n_5'		& `africa_mean_5'	& `africa_n_5'				& `tz_mean_5'	& `tz_n_5'			\\
+texdoc write 	\text{`var_6'}	      				&	`ne_mean_6'		&	`ne_n_6'		& `africa_mean_6'	& `africa_n_6'				& `tz_mean_6'	& `tz_n_6'			\\ 
+texdoc write 	\hline 	 
+
+texdoc write 	\hline
+texdoc write 	\end{tabular}
+texdoc write 	}
+
+texdoc close

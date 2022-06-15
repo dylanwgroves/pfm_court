@@ -42,8 +42,10 @@ ________________________________________________________________________________
 	
 	texdoc do "${code}/pfm_court/pfm_court_tables_means.texdoc"
 	
-	texdoc do "${code}/pfm_court/pfm_court_tables_courtonly_attitudesreporting_apcg.texdoc"
-	texdoc do "${code}/pfm_court/pfm_court_tables_courtonly_norms_apcg.texdoc"
+	texdoc do "${code}/pfm_court/01_tables/pfm_court_tables_courtonly_attitudesreporting_apcg.texdoc"
+	texdoc do "${code}/pfm_court/01_tables/pfm_court_tables_courtonly_norms_apcg.texdoc"
+	texdoc do "${code}/pfm_court/01_tables/pfm_court_tables_courtonly_speakout_apcg.texdoc"
+	texdoc do "${code}/pfm_court/01_tables/pfm_court_tables_courtvsag_all_apcg.texdoc"
 	
 	
 
@@ -57,9 +59,9 @@ ________________________________________________________________________________
 	texdoc do "${code}/pfm_court/pfm_court_tables_appendix_variables.texdoc"
 
 
-	texdoc do "${code}/pfm_court/pfm_court_tables_means.texdoc"
-	texdoc do "${code}/pfm_court/pfm_court_tables_attitudesnorms_apcg.texdoc"
-	texdoc do "${code}/pfm_court/pfm_court_tables_norms_apcg.texdoc"
-	texdoc do "${code}/pfm_court/pfm_court_tables_courtsvsag_apcg.texdoc"
+	texdoc do "${code}/pfm_court/01_tables/pfm_court_tables_means.texdoc"
+	texdoc do "${code}/pfm_court/01_tables/pfm_court_tables_attitudesnorms_apcg.texdoc"
+	texdoc do "${code}/pfm_court/01_tables/pfm_court_tables_norms_apcg.texdoc"
+	texdoc do "${code}/pfm_court/01_tables/pfm_court_tables_courtsvsag_apcg.texdoc"
 
 

@@ -100,7 +100,7 @@ ________________________________________________________________________________
 	
 	}
 
-		
+		stop
 foreach treat of global treats {
 
 	global treat treat_`treat'

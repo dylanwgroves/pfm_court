@@ -56,9 +56,8 @@ ________________________________________________________________________________
 	/* Individual Data */
 	# d ;
 	local sumstat_vars 	
-								em_record_sharepfm
-								em_record_shareptix
-								reason_courts
+						em_norm_reject_dum
+						em_report_norm
 						;
 	#d cr 
 						
@@ -79,11 +78,9 @@ ________________________________________________________________________________
 /* Any Labelling Changes _______________________________________________________*/
 
 	tostring variablelabel, replace
-	replace variablelabel = "Share Message with Media" if variable == "em_record_sharepfm"
-	replace variablelabel = "Share Message with DC" if variable == "em_record_shareptix"
-	replace variablelabel = "Message Mentions Law/Courts" if variable == "reason_courts"
-	
-	
+	replace variablelabel = "Community Would Reject" if variable == "em_norm_reject_dum"
+	replace variablelabel = "Community Would Report" if variable == "em_report_norm"
+
 /* Create variables ____________________________________________________________*/
 
 	count
@@ -141,29 +138,29 @@ ________________________________________________________________________________
 	
 /* Make Table __________________________________________________________________*/
 
-texdoc init "${court_clean_tables}/pfm_court_tables_courtonly_speakout_apcg.tex", replace nolog
+texdoc init "${court_clean_tables}/pfm_court_tables_courtonly_norms_apcg.tex", replace nolog
 
 texdoc write 	{
 texdoc write 	\def\sym#1{\ifmmode^{#1}\else\(^{#1}\)\fi}
-texdoc write 	\begin{tabular}{l*{7}{c}}
+texdoc write 	\begin{tabular}{l*{12}{c}}
 texdoc write 	\Xhline{2\arrayrulewidth}\addlinespace[3pt]	
 
 
-texdoc write    							&\multicolumn{2}{c}{$var1} &\multicolumn{2}{c}{$var2}	&\multicolumn{2}{c}{$var3}	\tstrut \bstrut \\ \cmidrule(r){2-3} \cmidrule(r){4-5} \cmidrule(r){6-7} 
+texdoc write    							&\multicolumn{2}{c}{$var1} &\multicolumn{2}{c}{$var2}	\tstrut \bstrut \\ \cmidrule(r){2-3} \cmidrule(r){4-5} 
 
-texdoc write    							& (1)				& (2)				& (3)			& (4)				& (5)			& (6)						\\
+texdoc write    							& (1)				& (2)				& (3)			& (4)								\\
 
-texdoc write 	Court Only Message			& $b1\sym{$s1}  	& $b1c\sym{$s1c} 	& $b2\sym{$s2} 	& $b2c\sym{$s2c} 	& $b3\sym{$s3} 	& $b3c\sym{$s3c}					\\
-texdoc write    Standard Error 				& $se1				& $se1c				& $se2    		& $se2c  			& $se3    		& $se3c  						\\
-texdoc write 	RI \$p\$-value 				& $p1				& $p1c 				& $p2			& $p2c				& $p3			& $p3c								\\
+texdoc write 	Court Only Message			& $b1\sym{$s1}  	& $b1c\sym{$s1c} 	& $b2\sym{$s2} 	& $b2c\sym{$s2c} 					\\
+texdoc write    Standard Error 				& $se1				& $se1c				& $se2    		& $se2c  							\\
+texdoc write 	\$p\$-value 				& $p1				& $p1c 				& $p2			& $p2c								\\
 texdoc write 	\hline \noalign{\vskip 0.1cm} 
-texdoc write 	Hypothesis					& +					& + 				& +				& + 				& +				& + 							\\
-texdoc write 	Control Mean      			& $c1				& $c1				& $c2			& $c2				& $c3			& $c3								\\
-texdoc write 	Control SD 					& $sd1				& $sd1				& $sd2			& $sd2				& $sd3			& $sd3							\\
-texdoc write	DV Range					& [$mn1-$mx1]		& [$mn1-$mx1]		& [$mn2-$mx2]	& [$mn2-$mx2]		& [$mn3-$mx3]	& [$mn3-$mx3]						\\	
-texdoc write 	Controls 					& $ctl1 			& $ctl1c 			&  $ctl2   		& $ctl2c			&  $ctl3   		& $ctl3c   							\\
-texdoc write 	Adj-\$ R^2\$				& $r1 				& $r1c 				& $r2   		& $r2c 				& $r3   		& $r3c 							\\
-texdoc write 	Observations      			& $n1 				& $n1c 				& $n2   		& $n2c 				& $n3   		& $n3c			  					\\
+texdoc write 	Hypothesis					& +					& + 				& +				& + 								\\
+texdoc write 	Control Mean      			& $c1				& $c1				& $c2			& $c2								\\
+texdoc write 	Control Village SD 			& $sd1				& $sd1				& $sd2			& $sd2								\\
+texdoc write	DV Range					& [$mn1-$mx1]		& [$mn1-$mx1]		& [$mn2-$mx2]	& [$mn2-$mx2]						\\	
+texdoc write 	Controls 					& $ctl1 			& $ctl1c 			&  $ctl2   		& $ctl2c  							\\
+texdoc write 	Adj-\$ R^2\$				& $r1 				& $r1c 				& $r2   		& $r2c 								\\
+texdoc write 	Observations      			& $n1 				& $n1c 				& $n2   		& $n2c 			  					\\
 texdoc write 	\Xhline{2\arrayrulewidth}
 texdoc write 	\end{tabular}
 texdoc write 	}
