@@ -100,7 +100,9 @@ ________________________________________________________________________________
 	
 	}
 
-		stop
+reg em_reject_all i.treat_courtonly##c.resp_female
+	
+	stop
 foreach treat of global treats {
 
 	global treat treat_`treat'

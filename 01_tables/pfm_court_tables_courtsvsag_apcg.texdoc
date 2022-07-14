@@ -157,7 +157,7 @@ texdoc write 	\$p\$-value 				& $p1				& $p1c 				& $p2			& $p2c			& $p3  				& 
 texdoc write 	\hline \noalign{\vskip 0.1cm} 
 texdoc write 	Hypothesis					& Neg.				& Neg. 				& Neg.			& Neg. 			& Neg.				& Neg.				& Neg.			& Neg.				& Neg.			& Neg.				\\
 texdoc write 	Court Only Treat Mean      	& $c1				& $c1				& $c2			& $c2			& $c3  				& $c3				& $c4			& $c4				& $c5			& $c5				\\
-texdoc write 	Control Village SD			& $sd1				& $sd1				& $sd2			& $sd2			& $sd3 				& $sd3				& $sd4			& $sd4				& $sd5			& $sd5				\\
+texdoc write 	Village SD			& $sd1				& $sd1				& $sd2			& $sd2			& $sd3 				& $sd3				& $sd4			& $sd4				& $sd5			& $sd5				\\
 texdoc write	DV Range					& [$mn1-$mx1]		& [$mn1-$mx1]		& [$mn2-$mx2]	& [$mn2-$mx2]	& [$mn3-$mx3] 		& [$mn3-$mx3]		& [$mn4-$mx4]	& [$mn4-$mx4]		& [$mn5-$mx5] 	& [$mn5-$mx5]		\\	
 texdoc write 	Controls 					& $ctl1 			& $ctl1c 			&  $ctl2   		& $ctl2c  		& $ctl3				& $ctl3c 			& $ctl4			& $ctl4c			& $ctl5			& $ctl5c			\\
 texdoc write 	Adj-\$ R^2\$				& $r1 				& $r1c 				& $r2   		& $r2c 			& $r3				& $r3c				& $r4			& $r4c				& $r5			& $r5c				\\

@@ -46,11 +46,7 @@ ________________________________________________________________________________
 	texdoc do "${code}/pfm_court/01_tables/pfm_court_tables_courtonly_norms_apcg.texdoc"
 	texdoc do "${code}/pfm_court/01_tables/pfm_court_tables_courtonly_speakout_apcg.texdoc"
 	texdoc do "${code}/pfm_court/01_tables/pfm_court_tables_courtvsag_all_apcg.texdoc"
-	
-	
-
-	stop
-	
+	texdoc do "${code}/pfm_court/01_tables/pfm_courts_afrobarometer.texdoc"
 	
 	texdoc do "${code}/pfm_court/pfm_court_tables_reporting_each.texdoc"
 	texdoc do "${code}/pfm_court/pfm_court_tables_speakout_each.texdoc"

@@ -156,7 +156,7 @@ texdoc write 	\$p\$-value 				& $p1				& $p1c 				& $p2			& $p2c								\\
 texdoc write 	\hline \noalign{\vskip 0.1cm} 
 texdoc write 	Hypothesis					& +					& + 				& +				& + 								\\
 texdoc write 	Control Mean      			& $c1				& $c1				& $c2			& $c2								\\
-texdoc write 	Control Village SD 			& $sd1				& $sd1				& $sd2			& $sd2								\\
+texdoc write 	Village SD 			& $sd1				& $sd1				& $sd2			& $sd2								\\
 texdoc write	DV Range					& [$mn1-$mx1]		& [$mn1-$mx1]		& [$mn2-$mx2]	& [$mn2-$mx2]						\\	
 texdoc write 	Controls 					& $ctl1 			& $ctl1c 			&  $ctl2   		& $ctl2c  							\\
 texdoc write 	Adj-\$ R^2\$				& $r1 				& $r1c 				& $r2   		& $r2c 								\\
